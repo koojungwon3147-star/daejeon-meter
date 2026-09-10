@@ -262,27 +262,30 @@ st.markdown(f"""
 """, unsafe_allow_html=True)
 
 # ----------------------------------------------------
-# 7. 당월 지침 입력 & 자동 계산
+# 7. 당월 지침 입력 & 자동 계산 (정수형)
 # ----------------------------------------------------
 st.markdown('<div class="tp-section-title">당월 지침값 입력</div>', unsafe_allow_html=True)
-default_val = float(curr_data["curr_val"]) if curr_data["curr_val"] is not None else float(curr_data["prev_val"])
+
+# 소수점 없이 정수로 기본값 설정
+default_val = int(curr_data["curr_val"]) if curr_data["curr_val"] is not None else int(curr_data["prev_val"])
 
 input_val = st.number_input(
     "당월 지침값", 
     value=default_val, 
-    step=0.1, 
-    format="%.1f", 
+    step=1, 
+    format="%d", 
     label_visibility="collapsed"
 )
 
-diff = round(input_val - curr_data["prev_val"], 2)
-actual_usage = round(diff * curr_data["ct_ratio"], 2)
+# 차이 및 사용량 계산 (정수 처리)
+diff = int(input_val - int(curr_data["prev_val"]))
+actual_usage = int(diff * curr_data["ct_ratio"])
 
 col1, col2 = st.columns(2)
 with col1:
-    st.metric("지침 차이", f"{diff:,.1f}")
+    st.metric("지침 차이", f"{diff:,}")
 with col2:
-    st.metric("당월 사용량 (배율 적용)", f"{actual_usage:,.1f} kWh")
+    st.metric("당월 사용량 (배율 적용)", f"{actual_usage:,} kWh")
 
 if diff < 0:
     st.error("⚠️ 주의: 당월 지침이 전월 지침보다 작습니다. 오입력을 확인하세요.")
