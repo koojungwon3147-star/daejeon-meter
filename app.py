@@ -118,6 +118,7 @@ def get_google_sheet():
         sheet = doc.worksheet("2026년9월")
         return sheet
     except Exception as e:
+        st.error(f"❌ 에러 이유: {e}")
         return None
 
 # ----------------------------------------------------
