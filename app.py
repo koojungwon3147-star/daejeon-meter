@@ -202,11 +202,29 @@ RAW_METERS = [
     {"id": "m65", "no": 49, "company": "공동 (한의원/치과/꽃방/볼링/웨딩)", "meter": "1F 지주식 광고입간판", "ct_ratio": 1, "prev_val": 11260.0}
 ]
 
+# ----------------------------------------------------
+# 4. 앱 구동 시 구글 시트에서 기존 입력 데이터 실시간 동기화
+# ----------------------------------------------------
+sheet = get_google_sheet()
+
 if 'completed_records' not in st.session_state:
     st.session_state.completed_records = {}
+    # 시트 E열(당월지침) 데이터를 읽어서 이미 적힌 값들을 복원
+    if sheet:
+        try:
+            # 2행부터 66행까지 E열 가져오기
+            e_values = sheet.col_values(5)[1:]
+            for idx, val in enumerate(e_values):
+                if idx < len(RAW_METERS) and val.strip():
+                    try:
+                        st.session_state.completed_records[RAW_METERS[idx]['id']] = float(val)
+                    except ValueError:
+                        pass
+        except Exception:
+            pass
 
 # ----------------------------------------------------
-# 4. 현황 게이지 및 필터
+# 5. 현황 게이지 및 필터
 # ----------------------------------------------------
 total_count = len(RAW_METERS)
 done_count = len(st.session_state.completed_records)
@@ -220,7 +238,7 @@ with col_filter1:
     only_uncompleted = st.checkbox("⏳ 미검침 계량기만 모아보기", value=False)
 
 # ----------------------------------------------------
-# 5. 검침 대상 선택
+# 6. 검침 대상 선택
 # ----------------------------------------------------
 options = []
 display_to_meter = {}
@@ -262,7 +280,7 @@ st.markdown(f"""
 """, unsafe_allow_html=True)
 
 # ----------------------------------------------------
-# 6. 당월 지침 입력
+# 7. 당월 지침 입력
 # ----------------------------------------------------
 st.markdown('<div class="tp-section-title">당월 지침값 입력</div>', unsafe_allow_html=True)
 default_input = float(st.session_state.completed_records.get(curr_data['id'], curr_data['prev_val']))
@@ -276,7 +294,7 @@ current_val = st.number_input(
 )
 
 # ----------------------------------------------------
-# 7. 실시간 차이 계산 & 구글 시트 저장
+# 8. 실시간 차이 계산 & 구글 시트 저장
 # ----------------------------------------------------
 diff = round(current_val - curr_data['prev_val'], 2)
 actual_usage = round(diff * curr_data['ct_ratio'], 2)
@@ -291,17 +309,15 @@ if diff < 0:
     st.error("⚠️ 주의: 당월 지침이 전월 지침보다 작습니다. 오입력을 확인하세요.")
 
 if st.button("💾 검침 데이터 저장 및 시트 전송", use_container_width=True):
-    st.session_state.completed_records[curr_data['id']] = current_val
-    
     with st.spinner("구글 시트에 저장하는 중..."):
-        sheet = get_google_sheet()
         if sheet:
             row_idx = RAW_METERS.index(curr_data) + 2  # 2행부터 시작
-            # E열(5): 당월지침, F열(6): 차이, G열(7): 사용량
             sheet.update_cell(row_idx, 5, current_val)
             sheet.update_cell(row_idx, 6, diff)
             sheet.update_cell(row_idx, 7, actual_usage)
+            
+            st.session_state.completed_records[curr_data['id']] = current_val
             st.success(f"🎉 [{curr_data['company']}] 구글 시트에 정상 반영되었습니다!")
             st.balloons()
         else:
-            st.error("❌ 구글 시트 연결에 실패했습니다. 아래 Secrets 설정을 확인하세요.")
+            st.error("❌ 구글 시트 연결에 실패했습니다. Secrets 설정을 확인하세요.")
