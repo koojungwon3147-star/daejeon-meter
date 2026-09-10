@@ -1,7 +1,10 @@
 import streamlit as st
+import json
+import gspread
+from oauth2client.service_account import ServiceAccountCredentials
 
 # ----------------------------------------------------
-# 1. 사학연금공단(tp.or.kr) 스타일 CSS 적용
+# 1. 사학연금공단(tp.or.kr) 스타일 헤더 & 디자인
 # ----------------------------------------------------
 st.set_page_config(page_title="대전회관 전기계량기 검침", layout="centered")
 
@@ -15,14 +18,12 @@ html, body, [class*="css"] {
     background-color: #FFFFFF;
 }
 
-/* 상단 유틸리티 바 & 헤더 */
 .tp-top-bar {
     background-color: #2A2F5C;
     color: #FFFFFF;
     padding: 6px 16px;
     font-size: 12px;
     font-weight: 500;
-    letter-spacing: -0.3px;
     border-radius: 4px 4px 0 0;
 }
 .tp-header {
@@ -44,7 +45,6 @@ html, body, [class*="css"] {
     color: #1B75BC;
 }
 
-/* 안내 카드 & 정보 박스 */
 .tp-info-box {
     background-color: #EAF3FB;
     border: 1px solid #D2E4F5;
@@ -56,7 +56,6 @@ html, body, [class*="css"] {
     line-height: 1.6;
 }
 
-/* 완료 알림 뱃지 박스 */
 .tp-done-box {
     background-color: #E8F5E9;
     border: 1px solid #C8E6C9;
@@ -68,7 +67,6 @@ html, body, [class*="css"] {
     color: #2E7D32;
 }
 
-/* 섹션 타이틀 */
 .tp-section-title {
     font-size: 15px;
     font-weight: 700;
@@ -78,7 +76,6 @@ html, body, [class*="css"] {
     margin: 18px 0 10px 0;
 }
 
-/* 대형 검침 저장 버튼 */
 .stButton > button {
     background-color: #1B75BC !important;
     color: #FFFFFF !important;
@@ -92,7 +89,6 @@ html, body, [class*="css"] {
 }
 .stButton > button:hover {
     background-color: #155A94 !important;
-    border-color: #155A94 !important;
     box-shadow: 0 4px 12px rgba(27,117,188,0.25) !important;
 }
 
@@ -103,13 +99,29 @@ div[data-baseweb="select"], div[data-baseweb="input"] {
 
 <div class="tp-top-bar">시설관리팀 종합검침시스템 │ 대전회관</div>
 <div class="tp-header">
-    <div class="tp-header-title">⚡ <span>대전회관</span> 전기계량기 검침</div>
+    <div class="tp-header-title">⚡ <span>대전회관</span> 전기계량기 검침 (2026.09)</div>
 </div>
 """
 st.markdown(tp_custom_css, unsafe_allow_html=True)
 
 # ----------------------------------------------------
-# 2. 계량기 마스터 데이터 (초기화)
+# 2. 구글 시트 연동 함수 ('2026년9월' 탭 지정)
+# ----------------------------------------------------
+def get_google_sheet():
+    try:
+        scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
+        secret_dict = json.loads(st.secrets["GCP_JSON"])
+        creds = ServiceAccountCredentials.from_json_keyfile_dict(secret_dict, scope)
+        client = gspread.authorize(creds)
+        # 구글 시트 파일 이름 & 탭 이름 지정
+        doc = client.open("대전회관 전기계량기 검침")
+        sheet = doc.worksheet("2026년9월")
+        return sheet
+    except Exception as e:
+        return None
+
+# ----------------------------------------------------
+# 3. 65개 실사 계량기 마스터 데이터
 # ----------------------------------------------------
 RAW_METERS = [
     {"id": "m1", "no": 1, "company": "20F 티피에스㈜", "meter": "컨택센터 UPS", "ct_ratio": 30, "prev_val": 2277.0},
@@ -179,15 +191,11 @@ RAW_METERS = [
     {"id": "m65", "no": 49, "company": "공동 (한의원/치과/꽃방/볼링/웨딩)", "meter": "1F 지주식 광고입간판", "ct_ratio": 1, "prev_val": 11260.0}
 ]
 
-# 세션 상태에 저장 내역 보관
 if 'completed_records' not in st.session_state:
-    st.session_state.completed_records = {}  # {meter_id: 당월지침값}
-
-if 'selected_idx' not in st.session_state:
-    st.session_state.selected_idx = 0
+    st.session_state.completed_records = {}
 
 # ----------------------------------------------------
-# 3. 진행 현황 대시보드
+# 4. 현황 게이지 및 필터
 # ----------------------------------------------------
 total_count = len(RAW_METERS)
 done_count = len(st.session_state.completed_records)
@@ -196,23 +204,20 @@ progress_ratio = done_count / total_count
 st.markdown(f"**검침 진행 현황:** **{done_count}** / {total_count}개 완료 ({int(progress_ratio*100)}%)")
 st.progress(progress_ratio)
 
-# 미검침만 보기 필터
 col_filter1, col_filter2 = st.columns([2, 1])
 with col_filter1:
     only_uncompleted = st.checkbox("⏳ 미검침 계량기만 모아보기", value=False)
 
 # ----------------------------------------------------
-# 4. 검침 대상 선택 목록 생성
+# 5. 검침 대상 선택
 # ----------------------------------------------------
 options = []
 display_to_meter = {}
 
 for idx, m in enumerate(RAW_METERS):
     is_done = m['id'] in st.session_state.completed_records
-    
     if only_uncompleted and is_done:
-        continue  # 미검침 보기 선택 시 완료된 것은 숨김
-        
+        continue
     tag = "✅ [완료]" if is_done else "⬜ [대기]"
     label = f"{tag} [{m['company']}] {m['meter']} (NO.{m['no']})"
     options.append(label)
@@ -228,7 +233,6 @@ selected_label = st.selectbox("검침 계량기를 선택하세요", options, la
 curr_data = display_to_meter[selected_label]
 is_curr_done = curr_data['id'] in st.session_state.completed_records
 
-# 계량기 상세 요약 카드
 if is_curr_done:
     done_val = st.session_state.completed_records[curr_data['id']]
     done_diff = round(done_val - curr_data['prev_val'], 2)
@@ -247,11 +251,9 @@ st.markdown(f"""
 """, unsafe_allow_html=True)
 
 # ----------------------------------------------------
-# 5. 당월 지침 숫자 입력창
+# 6. 당월 지침 입력
 # ----------------------------------------------------
 st.markdown('<div class="tp-section-title">당월 지침값 입력</div>', unsafe_allow_html=True)
-
-# 이미 입력한 적 있으면 그 값, 없으면 전월 지침 기본 표시
 default_input = float(st.session_state.completed_records.get(curr_data['id'], curr_data['prev_val']))
 
 current_val = st.number_input(
@@ -263,7 +265,7 @@ current_val = st.number_input(
 )
 
 # ----------------------------------------------------
-# 6. 실시간 지침차이 및 배율 계산
+# 7. 실시간 차이 계산 & 구글 시트 저장
 # ----------------------------------------------------
 diff = round(current_val - curr_data['prev_val'], 2)
 actual_usage = round(diff * curr_data['ct_ratio'], 2)
@@ -277,10 +279,18 @@ with col2:
 if diff < 0:
     st.error("⚠️ 주의: 당월 지침이 전월 지침보다 작습니다. 오입력을 확인하세요.")
 
-# ----------------------------------------------------
-# 7. 검침 저장 버튼
-# ----------------------------------------------------
-if st.button("💾 검침 데이터 저장", use_container_width=True):
+if st.button("💾 검침 데이터 저장 및 시트 전송", use_container_width=True):
     st.session_state.completed_records[curr_data['id']] = current_val
-    st.success(f"[{curr_data['company']} - {curr_data['meter']}] {current_val} kWh 저장 완료!")
+    
+    # 구글 시트의 2026년9월 탭에 즉시 입력
+    sheet = get_google_sheet()
+    if sheet:
+        row_idx = RAW_METERS.index(curr_data) + 2  # 2행부터 시작
+        # E열(5): 당월지침, F열(6): 차이, G열(7): 사용량
+        sheet.update_cell(row_idx, 5, current_val)
+        sheet.update_cell(row_idx, 6, diff)
+        sheet.update_cell(row_idx, 7, actual_usage)
+        st.success(f"[{curr_data['company']}] 구글 시트에 즉시 반영되었습니다! 🚀")
+    else:
+        st.warning("⚠️ 시트 전송 실패: Streamlit Secrets 설정을 확인해 주세요.")
     st.rerun()
