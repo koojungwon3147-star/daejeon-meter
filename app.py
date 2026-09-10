@@ -283,15 +283,15 @@ if diff < 0:
 if st.button("💾 검침 데이터 저장 및 시트 전송", use_container_width=True):
     st.session_state.completed_records[curr_data['id']] = current_val
     
-    # 구글 시트의 2026년9월 탭에 즉시 입력
-    sheet = get_google_sheet()
-    if sheet:
-        row_idx = RAW_METERS.index(curr_data) + 2  # 2행부터 시작
-        # E열(5): 당월지침, F열(6): 차이, G열(7): 사용량
-        sheet.update_cell(row_idx, 5, current_val)
-        sheet.update_cell(row_idx, 6, diff)
-        sheet.update_cell(row_idx, 7, actual_usage)
-        st.success(f"[{curr_data['company']}] 구글 시트에 즉시 반영되었습니다! 🚀")
-    else:
-        st.warning("⚠️ 시트 전송 실패: Streamlit Secrets 설정을 확인해 주세요.")
-    st.rerun()
+    with st.spinner("구글 시트에 저장하는 중..."):
+        sheet = get_google_sheet()
+        if sheet:
+            row_idx = RAW_METERS.index(curr_data) + 2  # 2행부터 시작
+            # E열(5): 당월지침, F열(6): 차이, G열(7): 사용량
+            sheet.update_cell(row_idx, 5, current_val)
+            sheet.update_cell(row_idx, 6, diff)
+            sheet.update_cell(row_idx, 7, actual_usage)
+            st.success(f"🎉 [{curr_data['company']}] 구글 시트에 정상 반영되었습니다!")
+            st.balloons()
+        else:
+            st.error("❌ 구글 시트 연결에 실패했습니다. 아래 Secrets 설정을 확인하세요.")
