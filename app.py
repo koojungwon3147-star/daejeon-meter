@@ -1,5 +1,4 @@
 import streamlit as st
-import json
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 
@@ -105,15 +104,26 @@ div[data-baseweb="select"], div[data-baseweb="input"] {
 st.markdown(tp_custom_css, unsafe_allow_html=True)
 
 # ----------------------------------------------------
-# 2. 구글 시트 연동 함수 ('2026년9월' 탭 지정)
+# 2. 구글 시트 연동 함수
 # ----------------------------------------------------
 def get_google_sheet():
     try:
         scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
-        secret_dict = json.loads(st.secrets["GCP_JSON"])
+        sec = st.secrets["gcp_service_account"]
+        secret_dict = {
+            "type": sec["type"],
+            "project_id": sec["project_id"],
+            "private_key_id": sec["private_key_id"],
+            "private_key": sec["private_key"].replace("\\n", "\n"),
+            "client_email": sec["client_email"],
+            "client_id": sec["client_id"],
+            "auth_uri": sec["auth_uri"],
+            "token_uri": sec["token_uri"],
+            "auth_provider_x509_cert_url": sec["auth_provider_x509_cert_url"],
+            "client_x509_cert_url": sec["client_x509_cert_url"]
+        }
         creds = ServiceAccountCredentials.from_json_keyfile_dict(secret_dict, scope)
         client = gspread.authorize(creds)
-        # 구글 시트 파일 이름 & 탭 이름 지정
         doc = client.open("대전회관 전기계량기 검침")
         sheet = doc.worksheet("2026년9월")
         return sheet
@@ -122,7 +132,7 @@ def get_google_sheet():
         return None
 
 # ----------------------------------------------------
-# 3. 65개 실사 계량기 마스터 데이터
+# 3. 65개 계량기 마스터 데이터
 # ----------------------------------------------------
 RAW_METERS = [
     {"id": "m1", "no": 1, "company": "20F 티피에스㈜", "meter": "컨택센터 UPS", "ct_ratio": 30, "prev_val": 2277.0},
