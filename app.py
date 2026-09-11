@@ -3,7 +3,7 @@ import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 
 # ----------------------------------------------------
-# 1. 화면 스타일 (다크/라이트 테마 자동 대응 & UI 고도화)
+# 1. 화면 스타일 (밝은 모드/다크 모드 완벽 고정 테마)
 # ----------------------------------------------------
 st.set_page_config(page_title="대전회관 전기계량기 검침", layout="centered")
 
@@ -15,17 +15,21 @@ html, body, [class*="css"] {
     font-family: 'Noto Sans KR', sans-serif !important;
 }
 
+/* 상단 사학연금/티피에스 남색 바 */
 .tp-top-bar {
-    background-color: #2A2F5C;
-    color: #FFFFFF;
-    padding: 6px 16px;
-    font-size: 12px;
-    font-weight: 500;
+    background-color: #2A2F5C !important;
+    color: #FFFFFF !important;
+    padding: 7px 16px;
+    font-size: 13px;
+    font-weight: 600;
     border-radius: 6px 6px 0 0;
 }
+
+/* 타이틀 헤더 */
 .tp-header {
-    background: rgba(255, 255, 255, 0.05);
-    border-bottom: 2px solid #1B75BC;
+    background-color: #FFFFFF !important;
+    border: 1px solid #E2E8F0;
+    border-bottom: 3px solid #1B75BC !important;
     padding: 14px 16px 12px 16px;
     margin-bottom: 15px;
     border-radius: 0 0 6px 6px;
@@ -33,66 +37,80 @@ html, body, [class*="css"] {
 .tp-header-title {
     font-size: 20px;
     font-weight: 700;
+    color: #2A2F5C !important;
     margin: 0;
     display: flex;
     align-items: center;
     gap: 8px;
 }
 .tp-header-title span {
-    color: #1B75BC;
+    color: #1B75BC !important;
 }
 
+/* 계량기 상세 안내 박스 */
 .tp-info-box {
-    background: rgba(27, 117, 188, 0.08);
-    border: 1px solid rgba(27, 117, 188, 0.3);
+    background-color: #F0F7FD !important;
+    border: 1px solid #BEE3F8 !important;
     border-radius: 8px;
     padding: 14px 16px;
     margin-bottom: 15px;
     font-size: 14px;
+    color: #1A365D !important;
     line-height: 1.6;
 }
 
+/* 완료 녹색 안내 박스 */
 .tp-done-box {
-    background: rgba(46, 125, 50, 0.12);
-    border: 1px solid rgba(76, 175, 80, 0.4);
+    background-color: #F0FFF4 !important;
+    border: 1px solid #C6F6D5 !important;
     border-radius: 8px;
     padding: 12px 14px;
     margin-bottom: 15px;
     font-size: 13px;
     font-weight: 600;
-    color: #4CAF50;
+    color: #22543D !important;
 }
 
+/* 섹션 타이틀 */
 .tp-section-title {
     font-size: 15px;
     font-weight: 700;
-    border-left: 3px solid #1B75BC;
+    color: #2A2F5C !important;
+    border-left: 4px solid #1B75BC;
     padding-left: 8px;
     margin: 18px 0 10px 0;
 }
 
-/* 새로고침 미니 버튼 스타일 */
-div[data-testid="stButton"] button[kind="secondary"] {
-    padding: 2px 10px !important;
-    font-size: 12px !important;
-    min-height: 36px !important;
-    height: 36px !important;
-    margin-top: 0px !important;
+/* 우측 새로고침 미니 버튼 */
+div[data-testid="column"]:nth-child(2) button {
+    height: 38px !important;
+    font-size: 13px !important;
+    padding: 0px 10px !important;
+    border-radius: 6px !important;
 }
 
-/* 저장 버튼 강조 스타일 */
-.save-btn > button {
+/* 하단 검침 저장 버튼 (강제 파란색 & 선명한 흰 글씨) */
+.stButton > button:last-child {
     background-color: #1B75BC !important;
     color: #FFFFFF !important;
-    font-size: 16px !important;
+    font-size: 17px !important;
     font-weight: 700 !important;
-    border-radius: 8px !important;
     border: none !important;
+    border-radius: 8px !important;
     padding: 14px 0 !important;
-    margin-top: 15px;
+    margin-top: 15px !important;
+    box-shadow: 0 4px 6px rgba(27, 117, 188, 0.2) !important;
+    transition: background-color 0.2s ease !important;
 }
-.save-btn > button:hover {
-    background-color: #155A94 !important;
+
+.stButton > button:last-child:hover {
+    background-color: #145A92 !important;
+    color: #FFFFFF !important;
+}
+
+.stButton > button:last-child p {
+    color: #FFFFFF !important;
+    font-weight: 700 !important;
 }
 </style>
 
