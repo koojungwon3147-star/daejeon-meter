@@ -3,7 +3,7 @@ import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 
 # ----------------------------------------------------
-# 1. 화면 스타일 (밝은 모드/다크 모드 완벽 고정 테마)
+# 1. 화면 스타일 (다크/라이트 완벽 대응 & 슬림 UI)
 # ----------------------------------------------------
 st.set_page_config(page_title="대전회관 전기계량기 검침", layout="centered")
 
@@ -20,14 +20,14 @@ html, body, [class*="css"] {
     background-color: #2A2F5C !important;
     color: #FFFFFF !important;
     padding: 8px 16px;
-    font-size: 14px;
+    font-size: 13px;
     font-weight: 600;
     border-radius: 6px 6px 0 0;
 }
 
 /* 타이틀 헤더 */
 .tp-header {
-    background-color: #FFFFFF !important;
+    background: rgba(255, 255, 255, 0.05);
     border: 1px solid #E2E8F0;
     border-bottom: 3px solid #1B75BC !important;
     padding: 16px 18px 14px 18px;
@@ -35,9 +35,8 @@ html, body, [class*="css"] {
     border-radius: 0 0 6px 6px;
 }
 .tp-header-title {
-    font-size: 22px;
+    font-size: 20px;
     font-weight: 700;
-    color: #2A2F5C !important;
     margin: 0;
     display: flex;
     align-items: center;
@@ -49,29 +48,28 @@ html, body, [class*="css"] {
 
 /* 계량기 상세 안내 박스 */
 .tp-info-box {
-    background-color: #F0F7FD !important;
-    border: 1px solid #BEE3F8 !important;
-    border-radius: 8px;
-    padding: 16px 18px;
-    margin-bottom: 15px;
-    font-size: 16px;
-    color: #1A365D !important;
-    line-height: 1.7;
-}
-
-/* 완료 녹색 안내 박스 */
-.tp-done-box {
-    background-color: #F0FFF4 !important;
-    border: 1px solid #C6F6D5 !important;
+    background: rgba(27, 117, 188, 0.08);
+    border: 1px solid rgba(27, 117, 188, 0.3);
     border-radius: 8px;
     padding: 14px 16px;
     margin-bottom: 15px;
     font-size: 15px;
-    font-weight: 600;
-    color: #22543D !important;
+    line-height: 1.6;
 }
 
-/* 💡 섹션 타이틀: 다크 배경에서도 쨍하게 보이는 밝은 파랑/스카이블루 */
+/* 완료 안내 박스 */
+.tp-done-box {
+    background: rgba(46, 125, 50, 0.12);
+    border: 1px solid rgba(76, 175, 80, 0.4);
+    border-radius: 8px;
+    padding: 12px 14px;
+    margin-bottom: 15px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #4CAF50 !important;
+}
+
+/* 소제목 타이틀 (가독성 높은 파란색) */
 .tp-section-title {
     font-size: 16px;
     font-weight: 700;
@@ -81,21 +79,21 @@ html, body, [class*="css"] {
     margin: 22px 0 12px 0;
 }
 
-/* 드롭다운 및 숫자 입력창 */
+/* 드롭다운 & 입력창 크기 */
 div[data-baseweb="select"] * {
-    font-size: 16px !important;
+    font-size: 15px !important;
 }
 div[data-baseweb="input"] input {
-    font-size: 22px !important;
+    font-size: 20px !important;
     font-weight: 700 !important;
-    height: 48px !important;
+    height: 46px !important;
 }
 
-/* 새로고침 미니 텍스트 버튼 (글자 안 잘리게 여백 최적화) */
+/* 새로고침 미니 버튼 */
 .mini-btn button {
     height: 32px !important;
     min-height: 32px !important;
-    padding: 0px 12px !important;
+    padding: 0px 14px !important;
     background-color: #1B75BC !important;
     color: #FFFFFF !important;
     border: none !important;
@@ -105,35 +103,26 @@ div[data-baseweb="input"] input {
 }
 .mini-btn button p {
     font-size: 13px !important;
-    font-weight: 500 !important;
+    font-weight: 600 !important;
     color: #FFFFFF !important;
     line-height: 32px !important;
 }
-.mini-btn button p {
-    font-size: 11px !important;
-    color: #FFFFFF !important;
-    line-height: 28px !important;
-}
-div[data-testid="column"]:nth-child(2) button p {
-    font-size: 12px !important;
-    color: #FFFFFF !important;
-}
 
-/* 하단 검침 저장 버튼 */
-.stButton > button:last-child {
+/* 하단 저장 버튼 */
+.save-btn > button {
     background-color: #1B75BC !important;
     color: #FFFFFF !important;
-    font-size: 18px !important;
+    font-size: 17px !important;
     font-weight: 700 !important;
     border: none !important;
     border-radius: 8px !important;
-    padding: 16px 0 !important;
+    padding: 14px 0 !important;
     margin-top: 18px !important;
     box-shadow: 0 4px 6px rgba(27, 117, 188, 0.2) !important;
 }
-.stButton > button:last-child p {
+.save-btn > button p {
     color: #FFFFFF !important;
-    font-size: 18px !important;
+    font-size: 17px !important;
     font-weight: 700 !important;
 }
 </style>
@@ -187,7 +176,7 @@ for idx, title in enumerate(worksheet_list):
         default_tab_index = idx
         break
 
-selected_month = st.selectbox("📅 검침 대상 월 (시트 탭 선택)", worksheet_list, index=default_tab_index)
+selected_month = st.selectbox("검침 대상 월 (시트 탭 선택)", worksheet_list, index=default_tab_index)
 sheet = doc.worksheet(selected_month)
 
 # ----------------------------------------------------
@@ -229,10 +218,11 @@ for row_idx, row in enumerate(all_rows[1:], start=2):
     company = row[col_company].strip()
     meter_name = row[col_meter].strip() if len(row) > col_meter else "계량기"
     
+    # 합계 행 건너뛰기
     if "합계" in company or "총합계" in company:
         continue
         
-    # 가상 간판 배분 행은 검침 목록에서 자동 제외
+    # 수식으로 채워지는 본문 가상 간판 행은 검침 목록에서 숨김 처리
     is_virtual_split = (
         ("광고입간판" in meter_name and "1F 지주식" not in meter_name) or
         ("썬큰간판" in meter_name and "후문" not in meter_name and "볼링/골프" not in company)
@@ -274,13 +264,12 @@ for row_idx, row in enumerate(all_rows[1:], start=2):
 total_count = len(meters_data)
 
 # ----------------------------------------------------
-# 5. 진행 현황 & 미니 새로고침
+# 5. 진행 현황 & 새로고침
 # ----------------------------------------------------
 progress_ratio = completed_count / total_count if total_count > 0 else 0
 st.markdown(f"**검침 진행 현황:** **{completed_count}** / {total_count}개 완료 ({int(progress_ratio*100)}%)")
 st.progress(progress_ratio)
 
-# 컬럼 폭을 [3.0, 1.0]으로 넉넉하게 주어 글자 잘림 방지
 col_filter1, col_filter2 = st.columns([3.0, 1.0])
 with col_filter1:
     only_uncompleted = st.checkbox("미검침 계량기만 보기", value=False)
@@ -291,7 +280,7 @@ with col_filter2:
     st.markdown('</div>', unsafe_allow_html=True)
 
 # ----------------------------------------------------
-# 6. 검침 대상 선택 (라벨에서 행 번호 제거)
+# 6. 검침 대상 선택
 # ----------------------------------------------------
 options = []
 label_to_item = {}
@@ -302,7 +291,6 @@ for m in meters_data:
         continue
     
     tag = "✅ [완료]" if is_done else "⬜ [대기]"
-    # 행 번호 문구를 제외하고 가독성 최적화
     label = f"{tag} [{m['company']}] {m['meter']}"
     options.append(label)
     label_to_item[label] = m
@@ -310,10 +298,9 @@ for m in meters_data:
 st.markdown('<div class="tp-section-title">검침 대상 선택</div>', unsafe_allow_html=True)
 
 if not options:
-    st.success("🎉 모든 실물 계량기의 검침이 완료되었습니다!")
+    st.success("모든 실물 계량기의 검침이 완료되었습니다.")
     st.stop()
 
-# 자동 순차 이동을 위한 인덱스 제어
 if 'selected_idx' not in st.session_state or st.session_state.selected_idx >= len(options):
     st.session_state.selected_idx = 0
 
@@ -327,14 +314,14 @@ if is_curr_done:
     usage_recorded = int(round(diff_recorded * curr_data["ct_ratio"]))
     st.markdown(f"""
     <div class="tp-done-box">
-        ✅ <b>이미 기록된 계량기입니다.</b> (당월지침: <b>{int(curr_data['curr_val']):,d}</b> │ 사용량: <b>{usage_recorded:,d} kWh</b>)
+        기록 완료 (당월지침: <b>{int(curr_data['curr_val']):,d}</b> │ 사용량: <b>{usage_recorded:,d} kWh</b>)
     </div>
     """, unsafe_allow_html=True)
 
 st.markdown(f"""
 <div class="tp-info-box">
-    <b>입주사:</b> {curr_data['company']} &nbsp;│&nbsp; <b>계량기:</b> {curr_data['meter']}<br>
-    <b>전월 지침:</b> {int(curr_data['prev_val']):,d} kWh &nbsp;│&nbsp; <b>적용 배율:</b> ×{int(curr_data['ct_ratio']) if curr_data['ct_ratio'].is_integer() else curr_data['ct_ratio']}
+    <b>입주사:</b> {curr_data['company']} &nbsp;|&nbsp; <b>계량기:</b> {curr_data['meter']}<br>
+    <b>전월 지침:</b> {int(curr_data['prev_val']):,d} kWh &nbsp;|&nbsp; <b>적용 배율:</b> ×{int(curr_data['ct_ratio']) if curr_data['ct_ratio'].is_integer() else curr_data['ct_ratio']}
 </div>
 """, unsafe_allow_html=True)
 
@@ -363,15 +350,16 @@ with col2:
     st.metric("당월 사용량 (배율 적용)", f"{actual_usage:,} kWh")
 
 if diff < 0:
-    st.error("⚠️ 주의: 당월 지침이 전월 지침보다 작습니다. 오입력을 확인하세요.")
+    st.error("당월 지침이 전월 지침보다 작습니다. 오입력을 확인하세요.")
 
-# 공동 간판 실시간 배분 안내 박스
+# 공동 간판 배분 계산 안내
 if "썬큰간판" in curr_data["meter"]:
     split_2 = round(actual_usage / 2, 1)
     st.info(f"""
     📢 **[공동 간판 배분 계산기 (1/2 배분)]**
     * 총 검침 사용량: **{actual_usage:,} kWh**
     * 업체별 부담 (**플렉스 볼링센터 / 플렉스 골프라운지** 각 50%): **{split_2:,.1f} kWh**
+    *(저장 시 시트 하단 실물 칸에 기록되며 상단 입주사 대장으로 자동 배분 연동됩니다.)*
     """)
 elif "지주식" in curr_data["meter"]:
     split_5 = round(actual_usage / 5, 1)
@@ -379,13 +367,14 @@ elif "지주식" in curr_data["meter"]:
     📢 **[공동 간판 배분 계산기 (1/5 균등 배분)]**
     * 총 검침 사용량: **{actual_usage:,} kWh**
     * 업체별 부담 (**한의원 / 치과 / 꽃방 / 볼링 / 웨딩** 각 20%): **{split_5:,.1f} kWh**
+    *(저장 시 시트 하단 실물 칸에 기록되며 상단 입주사 대장으로 자동 배분 연동됩니다.)*
     """)
 
 # ----------------------------------------------------
 # 8. 스마트 저장 및 다음 계량기 자동 이동
 # ----------------------------------------------------
 st.markdown('<div class="save-btn">', unsafe_allow_html=True)
-if st.button("💾 검침 데이터 저장 및 다음 계량기로 이동", use_container_width=True):
+if st.button("검침 데이터 저장 및 다음 계량기로 이동", use_container_width=True):
     with st.spinner("구글 시트에 실시간 기록 중..."):
         row = curr_data["row_idx"]
         
@@ -396,12 +385,11 @@ if st.button("💾 검침 데이터 저장 및 다음 계량기로 이동", use_
         if col_usage != -1:
             sheet.update_cell(row, col_usage + 1, actual_usage)
             
-        # 다음 계량기로 포커스 자동 전환
         if curr_idx + 1 < len(options):
             st.session_state.selected_idx = curr_idx + 1
         else:
             st.session_state.selected_idx = 0
             
-        st.toast(f"✅ [{curr_data['company']}] 저장 완료!", icon="💾")
+        st.toast(f"[{curr_data['company']}] 저장 완료", icon="💾")
         st.rerun()
 st.markdown('</div>', unsafe_allow_html=True)
