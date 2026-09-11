@@ -91,18 +91,23 @@ div[data-baseweb="input"] input {
     height: 48px !important;
 }
 
-/* 💡 새로고침 버튼 전용 미니 직사각형 스타일 */
-div[data-testid="column"]:nth-child(2) button {
-    height: 32px !important;
-    min-height: 32px !important;
-    font-size: 12px !important;
+/* 💡 새로고침 전용 슬림 직사각형 버튼 */
+.mini-btn button {
+    height: 28px !important;
+    min-height: 28px !important;
+    padding: 0px 10px !important;
+    font-size: 11px !important;
     font-weight: 600 !important;
-    padding: 0px 8px !important;
     border-radius: 4px !important;
-    margin-top: 0px !important;
     background-color: #1B75BC !important;
     color: #FFFFFF !important;
     border: none !important;
+    margin-top: 2px !important;
+}
+.mini-btn button p {
+    font-size: 11px !important;
+    color: #FFFFFF !important;
+    line-height: 28px !important;
 }
 div[data-testid="column"]:nth-child(2) button p {
     font-size: 12px !important;
