@@ -118,7 +118,6 @@ div[data-testid="column"]:nth-child(2) button {
     font-weight: 700 !important;
 }
 </style>
-"""
 
 <div class="tp-top-bar">티피에스 주식회사 │ 대전회관</div>
 <div class="tp-header">
