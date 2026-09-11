@@ -91,18 +91,23 @@ div[data-baseweb="input"] input {
     height: 48px !important;
 }
 
-/* 💡 새로고침 전용 슬림 직사각형 버튼 */
+/* 새로고침 미니 텍스트 버튼 (글자 안 잘리게 여백 최적화) */
 .mini-btn button {
-    height: 28px !important;
-    min-height: 28px !important;
-    padding: 0px 10px !important;
-    font-size: 11px !important;
-    font-weight: 600 !important;
-    border-radius: 4px !important;
+    height: 32px !important;
+    min-height: 32px !important;
+    padding: 0px 12px !important;
     background-color: #1B75BC !important;
     color: #FFFFFF !important;
     border: none !important;
-    margin-top: 2px !important;
+    border-radius: 4px !important;
+    white-space: nowrap !important;
+    margin-top: 0px !important;
+}
+.mini-btn button p {
+    font-size: 13px !important;
+    font-weight: 500 !important;
+    color: #FFFFFF !important;
+    line-height: 32px !important;
 }
 .mini-btn button p {
     font-size: 11px !important;
@@ -275,13 +280,13 @@ progress_ratio = completed_count / total_count if total_count > 0 else 0
 st.markdown(f"**검침 진행 현황:** **{completed_count}** / {total_count}개 완료 ({int(progress_ratio*100)}%)")
 st.progress(progress_ratio)
 
-# 💡 비율을 3.6 : 0.4 로 두어 버튼 폭과 크기를 대폭 축소
-col_filter1, col_filter2 = st.columns([3.6, 0.4])
+# 컬럼 폭을 [3.0, 1.0]으로 넉넉하게 주어 글자 잘림 방지
+col_filter1, col_filter2 = st.columns([3.0, 1.0])
 with col_filter1:
-    only_uncompleted = st.checkbox("⏳ 미검침 계량기만 모아보기", value=False)
+    only_uncompleted = st.checkbox("미검침 계량기만 보기", value=False)
 with col_filter2:
     st.markdown('<div class="mini-btn">', unsafe_allow_html=True)
-    if st.button("🔄 새로고침", use_container_width=True):
+    if st.button("새로고침", use_container_width=True):
         st.rerun()
     st.markdown('</div>', unsafe_allow_html=True)
 
