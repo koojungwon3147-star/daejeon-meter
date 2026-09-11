@@ -19,8 +19,8 @@ html, body, [class*="css"] {
 .tp-top-bar {
     background-color: #2A2F5C !important;
     color: #FFFFFF !important;
-    padding: 7px 16px;
-    font-size: 13px;
+    padding: 8px 16px;
+    font-size: 14px;
     font-weight: 600;
     border-radius: 6px 6px 0 0;
 }
@@ -30,12 +30,12 @@ html, body, [class*="css"] {
     background-color: #FFFFFF !important;
     border: 1px solid #E2E8F0;
     border-bottom: 3px solid #1B75BC !important;
-    padding: 14px 16px 12px 16px;
-    margin-bottom: 15px;
+    padding: 16px 18px 14px 18px;
+    margin-bottom: 18px;
     border-radius: 0 0 6px 6px;
 }
 .tp-header-title {
-    font-size: 20px;
+    font-size: 22px;
     font-weight: 700;
     color: #2A2F5C !important;
     margin: 0;
@@ -47,72 +47,78 @@ html, body, [class*="css"] {
     color: #1B75BC !important;
 }
 
-/* 계량기 상세 안내 박스 */
+/* 계량기 상세 안내 박스 (폰트 16px 확대) */
 .tp-info-box {
     background-color: #F0F7FD !important;
     border: 1px solid #BEE3F8 !important;
     border-radius: 8px;
-    padding: 14px 16px;
+    padding: 16px 18px;
     margin-bottom: 15px;
-    font-size: 14px;
+    font-size: 16px;
     color: #1A365D !important;
-    line-height: 1.6;
+    line-height: 1.7;
 }
 
-/* 완료 녹색 안내 박스 */
+/* 완료 녹색 안내 박스 (폰트 15px 확대) */
 .tp-done-box {
     background-color: #F0FFF4 !important;
     border: 1px solid #C6F6D5 !important;
     border-radius: 8px;
-    padding: 12px 14px;
+    padding: 14px 16px;
     margin-bottom: 15px;
-    font-size: 13px;
+    font-size: 15px;
     font-weight: 600;
     color: #22543D !important;
 }
 
-/* 섹션 타이틀 */
+/* 섹션 타이틀 (17px 확대) */
 .tp-section-title {
-    font-size: 15px;
+    font-size: 17px;
     font-weight: 700;
     color: #2A2F5C !important;
     border-left: 4px solid #1B75BC;
-    padding-left: 8px;
-    margin: 18px 0 10px 0;
+    padding-left: 10px;
+    margin: 20px 0 12px 0;
+}
+
+/* 드롭다운 & 텍스트/숫자 입력창 크기 확대 (22px & 볼드) */
+div[data-baseweb="select"] * {
+    font-size: 16px !important;
+}
+div[data-baseweb="input"] input {
+    font-size: 22px !important;
+    font-weight: 700 !important;
+    height: 48px !important;
 }
 
 /* 우측 새로고침 미니 버튼 */
 div[data-testid="column"]:nth-child(2) button {
-    height: 38px !important;
-    font-size: 13px !important;
-    padding: 0px 10px !important;
+    height: 40px !important;
+    font-size: 14px !important;
+    padding: 0px 12px !important;
     border-radius: 6px !important;
 }
 
-/* 하단 검침 저장 버튼 (강제 파란색 & 선명한 흰 글씨) */
+/* 하단 검침 저장 버튼 (18px 강조) */
 .stButton > button:last-child {
     background-color: #1B75BC !important;
     color: #FFFFFF !important;
-    font-size: 17px !important;
+    font-size: 18px !important;
     font-weight: 700 !important;
     border: none !important;
     border-radius: 8px !important;
-    padding: 14px 0 !important;
-    margin-top: 15px !important;
+    padding: 16px 0 !important;
+    margin-top: 18px !important;
     box-shadow: 0 4px 6px rgba(27, 117, 188, 0.2) !important;
-    transition: background-color 0.2s ease !important;
-}
-
-.stButton > button:last-child:hover {
-    background-color: #145A92 !important;
-    color: #FFFFFF !important;
 }
 
 .stButton > button:last-child p {
     color: #FFFFFF !important;
+    font-size: 18px !important;
     font-weight: 700 !important;
 }
 </style>
+"""
 
 <div class="tp-top-bar">티피에스 주식회사 │ 대전회관</div>
 <div class="tp-header">
