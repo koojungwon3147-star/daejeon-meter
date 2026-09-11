@@ -136,12 +136,12 @@ if not doc:
     st.stop()
 
 # ----------------------------------------------------
-# 3. 구글 시트에서 실시간 탭(월) 목록 가져오기
+# 3. 실시간 탭(월) 목록 가져오기
 # ----------------------------------------------------
 worksheet_list = [ws.title for ws in doc.worksheets()]
 default_tab_index = 0
 for idx, title in enumerate(worksheet_list):
-    if "2026년9월" in title:
+    if "9월" in title or "2026년 9월" in title or "2026년9월" in title:
         default_tab_index = idx
         break
 
@@ -149,49 +149,84 @@ selected_month = st.selectbox("📅 검침 대상 월 (시트 탭 선택)", work
 sheet = doc.worksheet(selected_month)
 
 # ----------------------------------------------------
-# 4. 구글 시트에서 전체 계량기 데이터 실시간 로드
+# 4. 헤더 자동 분석 및 데이터 실시간 파싱 (열 순서 영구 해결)
 # ----------------------------------------------------
 all_rows = sheet.get_all_values()
 if len(all_rows) < 2:
-    st.warning("⚠️ 시트에 헤더 외에 입력된 데이터가 없습니다.")
+    st.warning("⚠️ 시트에 헤더 외에 데이터가 없습니다.")
     st.stop()
+
+header = all_rows[0]
+
+# 열 이름으로 인덱스 자동 검색 (띄어쓰기 무시)
+def find_col_idx(names):
+    for target in names:
+        for idx, col_name in enumerate(header):
+            clean_name = col_name.replace(" ", "").strip()
+            if clean_name == target:
+                return idx
+    return -1
+
+col_company = find_col_idx(["업체명", "입주사명", "입주사"])
+col_meter   = find_col_idx(["계량기명", "계량기형", "계량기"])
+col_prev    = find_col_idx(["전월지침", "전출지침", "전월"])
+col_curr    = find_col_idx(["당월지침", "금월지침", "금월", "당월"])
+col_diff    = find_col_idx(["지침차", "지원차", "차이"])
+col_ratio   = find_col_idx(["배율", "배비"])
+col_usage   = find_col_idx(["사용량"])
+
+# 필수 열 체크 (만약 못 찾으면 기본 위치 할당)
+col_company = 0 if col_company == -1 else col_company
+col_meter = 1 if col_meter == -1 else col_meter
 
 meters_data = []
 completed_count = 0
 
 for row_idx, row in enumerate(all_rows[1:], start=2):
-    # A열이 비어있으면 건너뜀
-    if not row or not row[0].strip():
+    if not row or not row[col_company].strip():
         continue
     
-    company = row[0].strip()
-    meter_name = row[1].strip() if len(row) > 1 else "계량기"
+    company = row[col_company].strip()
+    meter_name = row[col_meter].strip() if len(row) > col_meter else "계량기"
     
-    # 혹시 시트 아래쪽에 '배분'이나 '합계' 관련 별도 행이 있다면 자동 제외
-    if "배분" in company or "배분" in meter_name or "합계" in company:
+    # 합계 행 건너뛰기
+    if "합계" in company or "총합계" in company:
         continue
-    
-    # 배율 (C열)
-    try:
-        ct_ratio = float(row[2]) if len(row) > 2 and row[2].strip() else 1.0
-    except ValueError:
-        ct_ratio = 1.0
         
-    # 전월지침 (D열)
-    try:
-        prev_val = float(row[3].replace(',', '')) if len(row) > 3 and row[3].strip() else 0.0
-    except ValueError:
-        prev_val = 0.0
+    # 💡 [핵심] 입주사에 걸려있는 가상 간판 행은 현장 검침 목록에서 숨김!
+    # (실물 계량기인 맨 아래 썬큰간판과 1F 지주식 광고입간판만 현장 검침 대상)
+    is_virtual_split = (
+        ("광고입간판" in meter_name and "1F 지주식" not in meter_name) or
+        ("썬큰간판" in meter_name and "후문" not in meter_name and "볼링/골프" not in company)
+    )
+    if is_virtual_split:
+        continue
         
-    # 당월지침 (E열 - 이미 입력되었는지 확인)
-    curr_val = None
-    if len(row) > 4 and row[4].strip():
+    # 배율 읽기
+    ct_ratio = 1.0
+    if col_ratio != -1 and len(row) > col_ratio and row[col_ratio].strip():
         try:
-            curr_val = float(row[4].replace(',', ''))
+            ct_ratio = float(row[col_ratio].replace(',', ''))
+        except ValueError:
+            ct_ratio = 1.0
+
+    # 전월지침 읽기
+    prev_val = 0.0
+    if col_prev != -1 and len(row) > col_prev and row[col_prev].strip():
+        try:
+            prev_val = float(row[col_prev].replace(',', ''))
+        except ValueError:
+            prev_val = 0.0
+
+    # 당월지침 읽기 (기존 입력 확인)
+    curr_val = None
+    if col_curr != -1 and len(row) > col_curr and row[col_curr].strip():
+        try:
+            curr_val = float(row[col_curr].replace(',', ''))
             completed_count += 1
         except ValueError:
             curr_val = None
-            
+
     meters_data.append({
         "row_idx": row_idx,
         "company": company,
@@ -202,14 +237,11 @@ for row_idx, row in enumerate(all_rows[1:], start=2):
     })
 
 total_count = len(meters_data)
-if total_count == 0:
-    st.warning("⚠️ 유효한 계량기 데이터가 없습니다. 시트를 확인해 주세요.")
-    st.stop()
 
 # ----------------------------------------------------
-# 5. 실시간 진행 현황 게이지 & 필터
+# 5. 진행 현황 & 필터
 # ----------------------------------------------------
-progress_ratio = completed_count / total_count
+progress_ratio = completed_count / total_count if total_count > 0 else 0
 st.markdown(f"**검침 진행 현황:** **{completed_count}** / {total_count}개 완료 ({int(progress_ratio*100)}%)")
 st.progress(progress_ratio)
 
@@ -239,7 +271,7 @@ for m in meters_data:
 st.markdown('<div class="tp-section-title">검침 대상 선택</div>', unsafe_allow_html=True)
 
 if not options:
-    st.success("🎉 모든 계량기의 검침이 완료되었습니다!")
+    st.success("🎉 모든 실물 계량기의 검침이 완료되었습니다!")
     st.stop()
 
 selected_label = st.selectbox("검침할 계량기를 선택하세요", options, label_visibility="collapsed")
@@ -264,7 +296,7 @@ st.markdown(f"""
 """, unsafe_allow_html=True)
 
 # ----------------------------------------------------
-# 7. 당월 지침 입력 & 자동 계산 (정수형 + 공동배분 안내)
+# 7. 당월 지침 입력 & 자동 계산 (정수형)
 # ----------------------------------------------------
 st.markdown('<div class="tp-section-title">당월 지침값 입력</div>', unsafe_allow_html=True)
 
@@ -290,7 +322,7 @@ with col2:
 if diff < 0:
     st.error("⚠️ 주의: 당월 지침이 전월 지침보다 작습니다. 오입력을 확인하세요.")
 
-# 💡 공동 간판일 경우 실시간 N등분 배분 안내 카드 표시
+# 공동 간판 실시간 배분 안내
 if "썬큰간판" in curr_data["meter"]:
     split_2 = round(actual_usage / 2, 1)
     st.info(f"""
@@ -307,16 +339,20 @@ elif "지주식" in curr_data["meter"]:
     """)
 
 # ----------------------------------------------------
-# 8. 구글 시트 저장
+# 8. 스마트 위치 추적 저장 (자동 열 검색)
 # ----------------------------------------------------
 if st.button("💾 검침 데이터 저장 및 시트 전송", use_container_width=True):
     with st.spinner("구글 시트에 실시간 기록 중..."):
         row = curr_data["row_idx"]
-        # E열(5): 당월지침, F열(6): 차이, G열(7): 사용량
-        sheet.update_cell(row, 5, input_val)
-        sheet.update_cell(row, 6, diff)
-        sheet.update_cell(row, 7, actual_usage)
         
+        # 헤더 이름을 찾아낸 열 번호에 정확하게 꽂아 넣음 (1-based index)
+        if col_curr != -1:
+            sheet.update_cell(row, col_curr + 1, input_val)
+        if col_diff != -1:
+            sheet.update_cell(row, col_diff + 1, diff)
+        if col_usage != -1:
+            sheet.update_cell(row, col_usage + 1, actual_usage)
+            
         st.success(f"🎉 [{curr_data['company']} - {curr_data['meter']}] 구글 시트에 정상 반영되었습니다!")
         st.balloons()
         st.rerun()
