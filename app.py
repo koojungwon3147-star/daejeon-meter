@@ -270,13 +270,15 @@ progress_ratio = completed_count / total_count if total_count > 0 else 0
 st.markdown(f"**검침 진행 현황:** **{completed_count}** / {total_count}개 완료 ({int(progress_ratio*100)}%)")
 st.progress(progress_ratio)
 
-# 💡 비율을 3.2 : 0.8 로 주어 우측 버튼이 작고 슬림한 직사각형으로 배치되게 설정
-col_filter1, col_filter2 = st.columns([3.2, 0.8])
+# 💡 비율을 3.6 : 0.4 로 두어 버튼 폭과 크기를 대폭 축소
+col_filter1, col_filter2 = st.columns([3.6, 0.4])
 with col_filter1:
     only_uncompleted = st.checkbox("⏳ 미검침 계량기만 모아보기", value=False)
 with col_filter2:
+    st.markdown('<div class="mini-btn">', unsafe_allow_html=True)
     if st.button("🔄 새로고침", use_container_width=True):
         st.rerun()
+    st.markdown('</div>', unsafe_allow_html=True)
 
 # ----------------------------------------------------
 # 6. 검침 대상 선택 (라벨에서 행 번호 제거)
