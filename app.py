@@ -139,7 +139,6 @@ if not doc:
 # 3. 구글 시트에서 실시간 탭(월) 목록 가져오기
 # ----------------------------------------------------
 worksheet_list = [ws.title for ws in doc.worksheets()]
-# 기본값으로 가장 최근 탭이나 2026년9월 선택
 default_tab_index = 0
 for idx, title in enumerate(worksheet_list):
     if "2026년9월" in title:
@@ -157,7 +156,6 @@ if len(all_rows) < 2:
     st.warning("⚠️ 시트에 헤더 외에 입력된 데이터가 없습니다.")
     st.stop()
 
-# 2행부터 데이터 파싱
 meters_data = []
 completed_count = 0
 
@@ -168,6 +166,10 @@ for row_idx, row in enumerate(all_rows[1:], start=2):
     
     company = row[0].strip()
     meter_name = row[1].strip() if len(row) > 1 else "계량기"
+    
+    # 혹시 시트 아래쪽에 '배분'이나 '합계' 관련 별도 행이 있다면 자동 제외
+    if "배분" in company or "배분" in meter_name or "합계" in company:
+        continue
     
     # 배율 (C열)
     try:
@@ -245,28 +247,27 @@ curr_data = label_to_item[selected_label]
 is_curr_done = (curr_data["curr_val"] is not None)
 
 if is_curr_done:
-    diff_recorded = round(curr_data["curr_val"] - curr_data["prev_val"], 2)
-    usage_recorded = round(diff_recorded * curr_data["ct_ratio"], 2)
+    diff_recorded = int(round(curr_data["curr_val"] - curr_data["prev_val"]))
+    usage_recorded = int(round(diff_recorded * curr_data["ct_ratio"]))
     st.markdown(f"""
     <div class="tp-done-box">
         ✅ <b>이미 구글 시트에 기록된 항목입니다.</b><br>
-        입력된 당월지침: <b>{curr_data['curr_val']:,.1f}</b> │ 사용량: <b>{usage_recorded:,.1f} kWh</b>
+        입력된 당월지침: <b>{int(curr_data['curr_val']):,d}</b> │ 사용량: <b>{usage_recorded:,d} kWh</b>
     </div>
     """, unsafe_allow_html=True)
 
 st.markdown(f"""
 <div class="tp-info-box">
     <b>입주사:</b> {curr_data['company']} &nbsp;│&nbsp; <b>계량기:</b> {curr_data['meter']}<br>
-    <b>전월 지침:</b> {curr_data['prev_val']:,.1f} kWh &nbsp;│&nbsp; <b>적용 배율:</b> ×{curr_data['ct_ratio']}
+    <b>전월 지침:</b> {int(curr_data['prev_val']):,d} kWh &nbsp;│&nbsp; <b>적용 배율:</b> ×{int(curr_data['ct_ratio']) if curr_data['ct_ratio'].is_integer() else curr_data['ct_ratio']}
 </div>
 """, unsafe_allow_html=True)
 
 # ----------------------------------------------------
-# 7. 당월 지침 입력 & 자동 계산 (정수형)
+# 7. 당월 지침 입력 & 자동 계산 (정수형 + 공동배분 안내)
 # ----------------------------------------------------
 st.markdown('<div class="tp-section-title">당월 지침값 입력</div>', unsafe_allow_html=True)
 
-# 소수점 없이 정수로 기본값 설정
 default_val = int(curr_data["curr_val"]) if curr_data["curr_val"] is not None else int(curr_data["prev_val"])
 
 input_val = st.number_input(
@@ -277,7 +278,6 @@ input_val = st.number_input(
     label_visibility="collapsed"
 )
 
-# 차이 및 사용량 계산 (정수 처리)
 diff = int(input_val - int(curr_data["prev_val"]))
 actual_usage = int(diff * curr_data["ct_ratio"])
 
@@ -289,6 +289,22 @@ with col2:
 
 if diff < 0:
     st.error("⚠️ 주의: 당월 지침이 전월 지침보다 작습니다. 오입력을 확인하세요.")
+
+# 💡 공동 간판일 경우 실시간 N등분 배분 안내 카드 표시
+if "썬큰간판" in curr_data["meter"]:
+    split_2 = round(actual_usage / 2, 1)
+    st.info(f"""
+    📢 **[공동 간판 배분 계산기 (1/2 배분)]**
+    * 총 검침 사용량: **{actual_usage:,} kWh**
+    * 업체별 부과량 (**플렉스 볼링센터 / 플렉스 골프라운지** 각 50%): **{split_2:,.1f} kWh**
+    """)
+elif "지주식" in curr_data["meter"]:
+    split_5 = round(actual_usage / 5, 1)
+    st.info(f"""
+    📢 **[공동 간판 배분 계산기 (1/5 균등 배분)]**
+    * 총 검침 사용량: **{actual_usage:,} kWh**
+    * 업체별 부과량 (**한의원 / 치과 / 꽃방 / 볼링 / 웨딩** 각 20%): **{split_5:,.1f} kWh**
+    """)
 
 # ----------------------------------------------------
 # 8. 구글 시트 저장
