@@ -47,7 +47,7 @@ html, body, [class*="css"] {
     color: #1B75BC !important;
 }
 
-/* 계량기 상세 안내 박스 (폰트 16px 확대) */
+/* 계량기 상세 안내 박스 */
 .tp-info-box {
     background-color: #F0F7FD !important;
     border: 1px solid #BEE3F8 !important;
@@ -59,7 +59,7 @@ html, body, [class*="css"] {
     line-height: 1.7;
 }
 
-/* 완료 녹색 안내 박스 (폰트 15px 확대) */
+/* 완료 녹색 안내 박스 */
 .tp-done-box {
     background-color: #F0FFF4 !important;
     border: 1px solid #C6F6D5 !important;
@@ -71,17 +71,17 @@ html, body, [class*="css"] {
     color: #22543D !important;
 }
 
-/* 섹션 타이틀 (17px 확대) */
+/* 💡 섹션 타이틀: 다크 배경에서도 쨍하게 보이는 밝은 파랑/스카이블루 */
 .tp-section-title {
-    font-size: 17px;
+    font-size: 16px;
     font-weight: 700;
-    color: #2A2F5C !important;
+    color: #4DA3FF !important;
     border-left: 4px solid #1B75BC;
     padding-left: 10px;
-    margin: 20px 0 12px 0;
+    margin: 22px 0 12px 0;
 }
 
-/* 드롭다운 & 텍스트/숫자 입력창 크기 확대 (22px & 볼드) */
+/* 드롭다운 및 숫자 입력창 */
 div[data-baseweb="select"] * {
     font-size: 16px !important;
 }
@@ -91,15 +91,25 @@ div[data-baseweb="input"] input {
     height: 48px !important;
 }
 
-/* 우측 새로고침 미니 버튼 */
+/* 💡 새로고침 버튼 전용 미니 직사각형 스타일 */
 div[data-testid="column"]:nth-child(2) button {
-    height: 40px !important;
-    font-size: 14px !important;
-    padding: 0px 12px !important;
-    border-radius: 6px !important;
+    height: 32px !important;
+    min-height: 32px !important;
+    font-size: 12px !important;
+    font-weight: 600 !important;
+    padding: 0px 8px !important;
+    border-radius: 4px !important;
+    margin-top: 0px !important;
+    background-color: #1B75BC !important;
+    color: #FFFFFF !important;
+    border: none !important;
+}
+div[data-testid="column"]:nth-child(2) button p {
+    font-size: 12px !important;
+    color: #FFFFFF !important;
 }
 
-/* 하단 검침 저장 버튼 (18px 강조) */
+/* 하단 검침 저장 버튼 */
 .stButton > button:last-child {
     background-color: #1B75BC !important;
     color: #FFFFFF !important;
@@ -111,7 +121,6 @@ div[data-testid="column"]:nth-child(2) button {
     margin-top: 18px !important;
     box-shadow: 0 4px 6px rgba(27, 117, 188, 0.2) !important;
 }
-
 .stButton > button:last-child p {
     color: #FFFFFF !important;
     font-size: 18px !important;
@@ -119,7 +128,7 @@ div[data-testid="column"]:nth-child(2) button {
 }
 </style>
 
-<div class="tp-top-bar">티피에스 주식회사 │ 대전회관</div>
+<div class="tp-top-bar">티피에스 주식회사 | 대전회관</div>
 <div class="tp-header">
     <div class="tp-header-title">⚡ <span>대전회관</span> 전기계량기 검침 대장</div>
 </div>
@@ -261,7 +270,8 @@ progress_ratio = completed_count / total_count if total_count > 0 else 0
 st.markdown(f"**검침 진행 현황:** **{completed_count}** / {total_count}개 완료 ({int(progress_ratio*100)}%)")
 st.progress(progress_ratio)
 
-col_filter1, col_filter2 = st.columns([2.5, 1])
+# 💡 비율을 3.2 : 0.8 로 주어 우측 버튼이 작고 슬림한 직사각형으로 배치되게 설정
+col_filter1, col_filter2 = st.columns([3.2, 0.8])
 with col_filter1:
     only_uncompleted = st.checkbox("⏳ 미검침 계량기만 모아보기", value=False)
 with col_filter2:
