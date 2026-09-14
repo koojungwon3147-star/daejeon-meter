@@ -3,7 +3,7 @@ import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 
 # ----------------------------------------------------
-# 1. 화면 스타일 (다크/라이트 완벽 대응 & 슬림 UI)
+# 1. 화면 스타일 (다크/라이트 완벽 대응 & 슬림 테마)
 # ----------------------------------------------------
 st.set_page_config(page_title="대전회관 전기계량기 검침", layout="centered")
 
@@ -54,7 +54,7 @@ html, body, [class*="css"] {
     padding: 14px 16px;
     margin-bottom: 15px;
     font-size: 15px;
-    line-height: 1.6;
+    line-height: 1.7;
 }
 
 /* 완료 안내 박스 */
@@ -69,7 +69,7 @@ html, body, [class*="css"] {
     color: #4CAF50 !important;
 }
 
-/* 소제목 타이틀 (가독성 높은 파란색) */
+/* 소제목 타이틀 */
 .tp-section-title {
     font-size: 16px;
     font-weight: 700;
@@ -79,7 +79,7 @@ html, body, [class*="css"] {
     margin: 22px 0 12px 0;
 }
 
-/* 드롭다운 & 입력창 크기 */
+/* 드롭다운 & 입력창 */
 div[data-baseweb="select"] * {
     font-size: 15px !important;
 }
@@ -108,7 +108,7 @@ div[data-baseweb="input"] input {
     line-height: 32px !important;
 }
 
-/* 하단 저장 버튼 */
+/* 하단 검침 저장 버튼 */
 .save-btn > button {
     background-color: #1B75BC !important;
     color: #FFFFFF !important;
@@ -125,6 +125,16 @@ div[data-baseweb="input"] input {
     font-size: 17px !important;
     font-weight: 700 !important;
 }
+
+/* 위치 태그 뱃지 */
+.location-badge {
+    background-color: #E2E8F0;
+    color: #1A202C;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 13px;
+    font-weight: 600;
+}
 </style>
 
 <div class="tp-top-bar">티피에스 주식회사 | 대전회관</div>
@@ -135,7 +145,80 @@ div[data-baseweb="input"] input {
 st.markdown(tp_custom_css, unsafe_allow_html=True)
 
 # ----------------------------------------------------
-# 2. 구글 스프레드시트 연결 엔진
+# 2. 계량기 위치 마스터 맵 (현장 검침 순서표 연동)
+# ----------------------------------------------------
+def get_meter_location(company, meter):
+    c = company.replace(" ", "")
+    m = meter.replace(" ", "")
+    
+    # 1. 옥상 (PH1)
+    if "코웨이" in c or "이안" in c: return "🏢 PH1 (옥상)"
+    if "A+에셋" in c and "12F" in m: return "🏢 PH1 (옥상)"
+    if "A+에셋" in c and ("15F" in m or "실외기" in m): return "🏢 PH1 (옥상)"
+    if "A+에셋" in c and "18F" in m: return "🏢 PH1 (옥상)"
+    
+    # 2. 20F
+    if "티피에스" in c: return "📍 20F EPS실"
+    if "신한카드채권" in c: return "📍 20F EPS실"
+    if "KB라이프" in c: return "📍 20F EPS실"
+    if "ABL생명" in c: return "📍 20F EPS실"
+    
+    # 3. 19F
+    if "근로복지공단" in c and "19F" in c: return "📍 19F EPS실"
+    if "프레제니우스" in c or "FMCK" in c: return "📍 19F EPS실"
+    
+    # 4. 15F
+    if "근로복지공단" in c and ("11층" in m or "11F" in m): return "📍 15F EPS실"
+    if "한국부동산원" in c and "18F" in c: return "📍 15F EPS실"
+    
+    # 5. 14F / 13F
+    if "신한카드" in c and "14F" in c: return "📍 14F EPS실"
+    if "시마즈" in c: return "📍 13F EPS실"
+    
+    # 6. 7F / 6F
+    if "오티스" in c or "OTIS" in c: return "📍 7F EPS실"
+    if "법률사무소" in c and "PAC" in m: return "📍 6F EPS실"
+    if "A+에셋" in c and "8F" in c: return "📍 6F EPS실"
+    
+    # 7. 5층 옥상 (간판 집중)
+    if "돌출간판" in m or "벽간판" in m or "서측" in m: return "🌳 5층 옥상"
+    
+    # 8. 4F ~ 2F
+    if "라이나생명" in c: return "📍 4F 라이나생명 내부"
+    if "F&U" in c and "시스템" in m: return "📍 4F EPS실"
+    if "계산" in m and "정산" in m: return "📍 3F EPS실"
+    if "음향실" in m or ("웨딩" in m and "3층" in m): return "📍 3F 음향실"
+    if "빌라드" in c and "에어컨" in m and "동측" in m: return "📍 2F EPS실"
+    if "웨딩예약실" in m: return "📍 2F EPS실"
+    if "한의원" in c and "일반전열" in m: return "📍 2F 한의원 내부 분전반"
+    
+    # 9. 1F
+    if "동문꽃방" in c and "쇼케이스" in m: return "📍 1F EPS실"
+    if "고반식당" in c: return "📍 1F 고반식당"
+    if "해이커피" in c: return "📍 1F 해이커피"
+    if "현대캐피탈" in c: return "📍 1F 현대캐피탈"
+    if "지주식" in m: return "🌳 1F 정문 화단"
+    if "썬큰간판" in m: return "🌳 1F 후문 화단"
+    
+    # 10. 지하층 (B1F ~ B5F)
+    if "골프장" in m and "동력" in m: return "⛳ B1F 플렉스 골프라운지"
+    if "골프장" in m and "에어컨" in m: return "⛳ B1F 플렉스 골프라운지"
+    if "볼링" in c and "일반전열" in m: return "🎳 B1F 플렉스 볼링센터"
+    if "후문계단" in m or "2F홀" in m: return "📍 B1F EPS실"
+    if "볼링" in c and "에어컨3" in m: return "📍 B1F EPS실"
+    if "냉동기" in m: return "📍 B4F 상부 EPS실"
+    if "주방동력" in m: return "⚡ B5F 수변전실"
+    if "볼링장동력" in m or ("볼링" in c and "동력" in m): return "⚡ B5F 수변전실"
+    if "볼링" in c and ("에어컨1" in m or "에어컨2" in m): return "⚡ B5F 수변전실"
+    
+    # 11. 원격검침 (방재센터)
+    if any(k in c for k in ["보안관리단", "시설관리단", "메리츠", "태양", "아이피", "남측", "서측", "KODATA", "방송통신", "와이즈넛"]):
+        return "📡 1F 방재센터 (원격검침)"
+        
+    return "📍 현장 분전반"
+
+# ----------------------------------------------------
+# 3. 구글 시트 연결
 # ----------------------------------------------------
 @st.cache_resource
 def get_spreadsheet_client():
@@ -167,7 +250,7 @@ if not doc:
     st.stop()
 
 # ----------------------------------------------------
-# 3. 실시간 탭(월) 목록 가져오기
+# 4. 실시간 탭(월) 로드
 # ----------------------------------------------------
 worksheet_list = [ws.title for ws in doc.worksheets()]
 default_tab_index = 0
@@ -179,9 +262,6 @@ for idx, title in enumerate(worksheet_list):
 selected_month = st.selectbox("검침 대상 월 (시트 탭 선택)", worksheet_list, index=default_tab_index)
 sheet = doc.worksheet(selected_month)
 
-# ----------------------------------------------------
-# 4. 헤더 자동 분석 및 데이터 파싱
-# ----------------------------------------------------
 all_rows = sheet.get_all_values()
 if len(all_rows) < 2:
     st.warning("⚠️ 시트에 데이터가 없습니다.")
@@ -218,11 +298,9 @@ for row_idx, row in enumerate(all_rows[1:], start=2):
     company = row[col_company].strip()
     meter_name = row[col_meter].strip() if len(row) > col_meter else "계량기"
     
-    # 합계 행 건너뛰기
     if "합계" in company or "총합계" in company:
         continue
         
-    # 수식으로 채워지는 본문 가상 간판 행은 검침 목록에서 숨김 처리
     is_virtual_split = (
         ("광고입간판" in meter_name and "1F 지주식" not in meter_name) or
         ("썬큰간판" in meter_name and "후문" not in meter_name and "볼링/골프" not in company)
@@ -252,10 +330,13 @@ for row_idx, row in enumerate(all_rows[1:], start=2):
         except ValueError:
             curr_val = None
 
+    location = get_meter_location(company, meter_name)
+
     meters_data.append({
         "row_idx": row_idx,
         "company": company,
         "meter": meter_name,
+        "location": location,
         "ct_ratio": ct_ratio,
         "prev_val": prev_val,
         "curr_val": curr_val
@@ -264,7 +345,7 @@ for row_idx, row in enumerate(all_rows[1:], start=2):
 total_count = len(meters_data)
 
 # ----------------------------------------------------
-# 5. 진행 현황 & 새로고침
+# 5. 진행 현황 & 미니 새로고침
 # ----------------------------------------------------
 progress_ratio = completed_count / total_count if total_count > 0 else 0
 st.markdown(f"**검침 진행 현황:** **{completed_count}** / {total_count}개 완료 ({int(progress_ratio*100)}%)")
@@ -291,6 +372,8 @@ for m in meters_data:
         continue
     
     tag = "✅ [완료]" if is_done else "⬜ [대기]"
+    if "원격검침" in m["location"]:
+        tag = "📡 [원격]"
     label = f"{tag} [{m['company']}] {m['meter']}"
     options.append(label)
     label_to_item[label] = m
@@ -298,7 +381,7 @@ for m in meters_data:
 st.markdown('<div class="tp-section-title">검침 대상 선택</div>', unsafe_allow_html=True)
 
 if not options:
-    st.success("모든 실물 계량기의 검침이 완료되었습니다.")
+    st.success("모든 계량기의 검침이 완료되었습니다.")
     st.stop()
 
 if 'selected_idx' not in st.session_state or st.session_state.selected_idx >= len(options):
@@ -318,8 +401,10 @@ if is_curr_done:
     </div>
     """, unsafe_allow_html=True)
 
+# 💡 위치표 마스터 정보가 포함된 상세 안내 상자
 st.markdown(f"""
 <div class="tp-info-box">
+    <b>검침 위치:</b> <span class="location-badge">{curr_data['location']}</span><br>
     <b>입주사:</b> {curr_data['company']} &nbsp;|&nbsp; <b>계량기:</b> {curr_data['meter']}<br>
     <b>전월 지침:</b> {int(curr_data['prev_val']):,d} kWh &nbsp;|&nbsp; <b>적용 배율:</b> ×{int(curr_data['ct_ratio']) if curr_data['ct_ratio'].is_integer() else curr_data['ct_ratio']}
 </div>
@@ -352,14 +437,14 @@ with col2:
 if diff < 0:
     st.error("당월 지침이 전월 지침보다 작습니다. 오입력을 확인하세요.")
 
-# 공동 간판 배분 계산 안내
+# 공동 간판 배분 계산기 안내
 if "썬큰간판" in curr_data["meter"]:
     split_2 = round(actual_usage / 2, 1)
     st.info(f"""
     📢 **[공동 간판 배분 계산기 (1/2 배분)]**
     * 총 검침 사용량: **{actual_usage:,} kWh**
     * 업체별 부담 (**플렉스 볼링센터 / 플렉스 골프라운지** 각 50%): **{split_2:,.1f} kWh**
-    *(저장 시 시트 하단 실물 칸에 기록되며 상단 입주사 대장으로 자동 배분 연동됩니다.)*
+    *(저장 시 하단 실물 칸에 기록되며 상단 입주사 대장으로 자동 배분 연동됩니다.)*
     """)
 elif "지주식" in curr_data["meter"]:
     split_5 = round(actual_usage / 5, 1)
@@ -367,11 +452,11 @@ elif "지주식" in curr_data["meter"]:
     📢 **[공동 간판 배분 계산기 (1/5 균등 배분)]**
     * 총 검침 사용량: **{actual_usage:,} kWh**
     * 업체별 부담 (**한의원 / 치과 / 꽃방 / 볼링 / 웨딩** 각 20%): **{split_5:,.1f} kWh**
-    *(저장 시 시트 하단 실물 칸에 기록되며 상단 입주사 대장으로 자동 배분 연동됩니다.)*
+    *(저장 시 하단 실물 칸에 기록되며 상단 입주사 대장으로 자동 배분 연동됩니다.)*
     """)
 
 # ----------------------------------------------------
-# 8. 스마트 저장 및 다음 계량기 자동 이동
+# 8. 스마트 저장 및 다음 이동
 # ----------------------------------------------------
 st.markdown('<div class="save-btn">', unsafe_allow_html=True)
 if st.button("검침 데이터 저장 및 다음 계량기로 이동", use_container_width=True):
