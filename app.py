@@ -290,6 +290,7 @@ col_meter = 1 if col_meter == -1 else col_meter
 
 meters_data = []
 completed_count = 0
+seen_keys = set()  # 💡 중복 등록 방지용 집합
 
 for row_idx, row in enumerate(all_rows[1:], start=2):
     if not row or not row[col_company].strip():
@@ -298,15 +299,23 @@ for row_idx, row in enumerate(all_rows[1:], start=2):
     company = row[col_company].strip()
     meter_name = row[col_meter].strip() if len(row) > col_meter else "계량기"
     
+    # 합계 행 및 빈 행 건너뛰기
     if "합계" in company or "총합계" in company:
         continue
         
+    # 본문 쪽 입주사 가상 간판 행은 제외 (분리내역 수식으로 자동 계산되는 행들)
     is_virtual_split = (
-        ("광고입간판" in meter_name and "1F 지주식" not in meter_name) or
+        ("광고입간판" in meter_name and "1F 지주식" not in meter_name and "정문" not in meter_name) or
         ("썬큰간판" in meter_name and "후문" not in meter_name and "볼링/골프" not in company)
     )
     if is_virtual_split:
         continue
+
+    # 💡 [핵심] 동일한 업체명 + 계량기명이 이미 등록되었다면 두 번째 행은 건너뜀 (중복 완벽 차단)
+    unique_key = f"{company}_{meter_name}"
+    if unique_key in seen_keys:
+        continue
+    seen_keys.add(unique_key)
         
     ct_ratio = 1.0
     if col_ratio != -1 and len(row) > col_ratio and row[col_ratio].strip():
