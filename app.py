@@ -145,12 +145,34 @@ div[data-baseweb="input"] input {
 st.markdown(tp_custom_css, unsafe_allow_html=True)
 
 # ----------------------------------------------------
-# 2. 계량기 위치 마스터 맵 (현장 검침 순서표 연동)
+# 2. 계량기 위치 마스터 맵 (원격검침 대상 완벽 반영)
 # ----------------------------------------------------
 def get_meter_location(company, meter):
     c = company.replace(" ", "")
     m = meter.replace(" ", "")
     
+    # 💡 [원격검침 우선 분류] 1F 방재센터 원격검침 항목들
+    is_remote = False
+    if "보안관리단" in c or "시설관리단" in c or "메리츠" in c or "태양" in c:
+        is_remote = True
+    elif "아이피" in c or "와이즈넛" in c or "방송통신" in c:
+        is_remote = True
+    elif "A+에셋" in c and ("남측" in c or "서측" in c or "남측" in m or "서측" in m):
+        is_remote = True
+    elif "KODATA" in c and "EHP" in m:
+        is_remote = True
+    elif "부동산원" in c and ("6F" in c or "6층" in c or "에어컨" in m):
+        # 18F 한국부동산원(15F EPS) 외의 6F 부동산원 원격 대상
+        if "18F" not in c and "18층" not in c:
+            is_remote = True
+    elif "F&U" in c and ("EHP" in m or "4,5층" in m or "시스템" not in m):
+        # F&U EHP 원격검침 (시스템실은 4F EPS 현장 실측)
+        is_remote = True
+
+    if is_remote:
+        return "📡 1F 방재센터 (원격검침)"
+    
+    # --- [현장 실측 위치 분류] ---
     # 1. 옥상 (PH1)
     if "코웨이" in c or "이안" in c: return "🏢 PH1 (옥상)"
     if "A+에셋" in c and "12F" in m: return "🏢 PH1 (옥상)"
@@ -169,7 +191,7 @@ def get_meter_location(company, meter):
     
     # 4. 15F
     if "근로복지공단" in c and ("11층" in m or "11F" in m): return "📍 15F EPS실"
-    if "한국부동산원" in c and "18F" in c: return "📍 15F EPS실"
+    if "한국부동산원" in c and ("18F" in c or "18층" in c): return "📍 15F EPS실"
     
     # 5. 14F / 13F
     if "신한카드" in c and "14F" in c: return "📍 14F EPS실"
@@ -210,10 +232,6 @@ def get_meter_location(company, meter):
     if "주방동력" in m: return "⚡ B5F 수변전실"
     if "볼링장동력" in m or ("볼링" in c and "동력" in m): return "⚡ B5F 수변전실"
     if "볼링" in c and ("에어컨1" in m or "에어컨2" in m): return "⚡ B5F 수변전실"
-    
-    # 11. 원격검침 (방재센터)
-    if any(k in c for k in ["보안관리단", "시설관리단", "메리츠", "태양", "아이피", "남측", "서측", "KODATA", "방송통신", "와이즈넛"]):
-        return "📡 1F 방재센터 (원격검침)"
         
     return "📍 현장 분전반"
 
@@ -380,9 +398,12 @@ for m in meters_data:
     if only_uncompleted and is_done:
         continue
     
-    tag = "✅ [완료]" if is_done else "⬜ [대기]"
+    # 💡 원격검침 항목은 완료 여부와 무관하게 원격 표시 (완료 시 완료 태그 병기)
     if "원격검침" in m["location"]:
-        tag = "📡 [원격]"
+        tag = "✅ [원격완료]" if is_done else "📡 [원격]"
+    else:
+        tag = "✅ [완료]" if is_done else "⬜ [대기]"
+
     label = f"{tag} [{m['company']}] {m['meter']}"
     options.append(label)
     label_to_item[label] = m
