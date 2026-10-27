@@ -168,7 +168,7 @@ with st.expander('📍 계량기 검침 위치 및 순서표 보기', expanded=F
 SPREADSHEET_ID = "1GuRaE9GASUYYynraKB4zMhnyW8swaXMqBEoykyIp_CU"
 ROUTE = {1: {'location': '🏢 PH1 (옥상)', 'no': 'No.5', 'order': 1}, 2: {'location': '🏢 PH1 (옥상)', 'no': 'No.9', 'order': 2}, 3: {'location': '🏢 PH1 (옥상)', 'no': 'No.53', 'order': 3}, 4: {'location': '🏢 PH1 (옥상)', 'no': 'No.60', 'order': 4}, 5: {'location': '📍 20F EPS실', 'no': 'No.1', 'order': 5}, 6: {'location': '📍 20F EPS실', 'no': 'No.2', 'order': 6}, 7: {'location': '📍 20F EPS실', 'no': 'No.54', 'order': 7}, 8: {'location': '📍 20F EPS실', 'no': 'No.55', 'order': 8}, 9: {'location': '📍 20F EPS실', 'no': 'No.56', 'order': 9}, 10: {'location': '📍 19F EPS실', 'no': 'No.4', 'order': 10}, 11: {'location': '📍 19F EPS실', 'no': 'No.6', 'order': 11}, 12: {'location': '📍 15F EPS실', 'no': 'No.11', 'order': 12}, 13: {'location': '📍 15F EPS실', 'no': 'No.52', 'order': 13}, 14: {'location': '📍 14F EPS실', 'no': 'No.7', 'order': 14}, 15: {'location': '📍 13F EPS실', 'no': 'No.56', 'order': 15}, 16: {'location': '📍 7F EPS실', 'no': 'No.16', 'order': 16}, 17: {'location': '📍 6F EPS실', 'no': 'No.12', 'order': 17}, 18: {'location': '📍 6F EPS실', 'no': 'No.13', 'order': 18}, 19: {'location': '📍 6F EPS실', 'no': 'No.15', 'order': 19}, 20: {'location': '🌳 5층 옥상', 'no': 'No.10', 'order': 20}, 21: {'location': '🌳 5층 옥상', 'no': 'No.17', 'order': 21}, 22: {'location': '🌳 5층 옥상', 'no': 'No.39', 'order': 22}, 23: {'location': '🌳 5층 옥상', 'no': 'No.46', 'order': 23}, 24: {'location': '🌳 5층 옥상', 'no': 'No.23', 'order': 24}, 25: {'location': '🌳 5층 옥상', 'no': 'No.28', 'order': 25}, 26: {'location': '🌳 5층 옥상', 'no': 'No.37', 'order': 26}, 27: {'location': '🌳 5층 옥상', 'no': 'No.14', 'order': 27}, 28: {'location': '🌳 5층 옥상', 'no': '', 'order': 28}, 29: {'location': '📍 4F 라이나생명 내부', 'no': 'No.18', 'order': 29}, 30: {'location': '📍 4F EPS실', 'no': 'No.59', 'order': 30}, 31: {'location': '📍 3F EPS실', 'no': 'No.19', 'order': 31}, 32: {'location': '📍 3F 음향실', 'no': 'No.26', 'order': 32}, 33: {'location': '📍 2F EPS실', 'no': 'No.22', 'order': 33}, 34: {'location': '📍 2F EPS실', 'no': 'No.25', 'order': 34}, 35: {'location': '📍 2F 한의원 내부 분전반', 'no': 'No.29', 'order': 35}, 36: {'location': '📍 1F EPS실', 'no': 'No.36', 'order': 36}, 37: {'location': '📍 1F 고반식당', 'no': 'No.32', 'order': 37}, 38: {'location': '📍 1F 고반식당', 'no': 'No.33', 'order': 38}, 39: {'location': '📍 1F 고반식당', 'no': 'No.34', 'order': 39}, 40: {'location': '📍 1F 해이커피', 'no': 'No.57', 'order': 40}, 41: {'location': '📍 1F 현대캐피탈', 'no': 'No.58', 'order': 41}, 42: {'location': '🌳 1F 정문 화단', 'no': 'No.49', 'order': 42}, 43: {'location': '🌳 1F 후문 화단', 'no': 'No.48', 'order': 43}, 44: {'location': '⛳ B1F 플렉스 골프라운지', 'no': 'No.47', 'order': 44}, 45: {'location': '⛳ B1F 플렉스 골프라운지', 'no': 'No.50', 'order': 45}, 46: {'location': '⛳ B1F 플렉스 골프라운지', 'no': 'No.51', 'order': 46}, 47: {'location': '🎳 B1F 플렉스 볼링센터', 'no': 'No.43', 'order': 47}, 48: {'location': '📍 B1F EPS실', 'no': 'No.24', 'order': 48}, 49: {'location': '📍 B1F EPS실', 'no': 'No.42', 'order': 49}, 50: {'location': '📍 B4F 상부 EPS실', 'no': 'No.27', 'order': 50}, 51: {'location': '⚡ B5F 수변전실', 'no': 'No.21', 'order': 51}, 52: {'location': '⚡ B5F 수변전실', 'no': 'No.20', 'order': 52}, 53: {'location': '⚡ B5F 수변전실', 'no': 'No.38', 'order': 53}, 54: {'location': '⚡ B5F 수변전실', 'no': 'No.40', 'order': 54}, 55: {'location': '⚡ B5F 수변전실', 'no': 'No.41', 'order': 55}}
 MAPPING = {('19F이연', '에어컨'): 1, ('12FA+에셋', '12층실외기'): 2, ('15FA+에셋', 'PAC에어컨'): 3, ('18FA+에셋', 'PAC에어컨'): 4, ('20F티피에스(주)', '컨택센터UPS'): 5, ('20F티피에스(주)', '컨택센터EHP'): 6, ('20F신한카드채권관리팀', 'EHP'): 7, ('20FKB라이프', 'EHP'): 8, ('20FABL생명', 'EHP'): 9, ('19F근로복지공단', '19FPAC에어컨'): 10, ('19F프레제니우스메디칼케어', 'EHP'): 11, ('11F근로복지공단', '11층EHP'): 12, ('18F한국부동산원', '에어컨'): 13, ('14F신한카드', 'EHP'): 14, ('13F시마즈사이언티픽코리아', 'EHP'): 15, ('7FOTIS', 'PAC에어컨'): 16, ('10F법률사무소', 'PAC에어컨1'): 17, ('10F법률사무소', 'PAC에어컨2'): 18, ('8FA+에셋', '에어컨'): 19, ('12FA+에셋', '남측돌출간판'): 20, ('5FKPC한국생산성본부', '돌출간판'): 21, ('플렉스볼링센터', '서측벽간판'): 22, ('플렉스골프라운지', '서측벽간판'): 23, ('(주)빌라드알티오라', '서측벽간판'): 24, ('박기섭한의원', '돌출간판,서측벽간판'): 25, ('청사치과', '서측벽간판'): 26, ('10F법률사무소', '돌출간판'): 27, ('9FKODATA', '에어컨'): 28, ('4F라이나생명', '사무실EHP'): 29, ('4FF&U', '시스템실'): 30, ('(주)빌라드알티오라', '3F계산및정산실'): 31, ('(주)빌라드알티오라', '웨딩홀PAC(3층음향실)'): 32, ('(주)빌라드알티오라', '3층(동측에어컨)'): 33, ('(주)빌라드알티오라', '웨딩예약실PAC(2층EPS실)'): 34, ('박기섭한의원', '일반전열'): 35, ('동문꽃방', '쇼케이스냉장고'): 36, ('고반식당', '일반전열'): 37, ('고반식당', '비상전열'): 38, ('고반식당', '에어컨'): 39, ('해이커피', '일반전열'): 40, ('현대캐피탈', 'EHP'): 41, ('(한의원/치과/꽃방/볼링/웨딩)', '1F지주식광고입간판'): 42, ('(볼링/골프)', '썬큰간판(1F후문화단)'): 43, ('플렉스골프라운지', '골프장동력(하단)'): 44, ('플렉스골프라운지', '골프장에어컨-1(상)'): 45, ('플렉스골프라운지', '골프장에어컨-2(하)'): 46, ('플렉스볼링센터', '일반전열'): 47, ('(주)빌라드알티오라', '2층후문계단쪽PAC(B1층EPS실)'): 48, ('플렉스볼링센터', '천정형에어컨3'): 49, ('(주)빌라드알티오라', 'B4층냉동기'): 50, ('(주)빌라드알티오라', '주방동력1'): 51, ('(주)빌라드알티오라', '주방동력2'): 52, ('플렉스볼링센터', '볼링장동력'): 53, ('플렉스볼링센터', '천정형에어컨1'): 54, ('플렉스볼링센터', '천정형에어컨2'): 55}
-EXCLUDED = {('플렉스볼링센터', '광고입간판'), ('9FA+에셋(서측)', 'EHP'), ('12F노무법인태양', 'EHP'), ('청사치과', '광고입간판'), ('4FF&U', 'EHP'), ('플렉스볼링센터', '썬큰간판'), ('11F아이피앤텍플러스', 'EHP'), ('13F과학기술시설관리단', 'EHP'), ('6F한국부동산원', '에어컨'), ('4F방송통신심의위원회', 'PAC에어컨'), ('19F과학기술보안관리단', 'EHP'), ('플렉스골프라운지', '썬큰간판'), ('9FA+에셋(남측)', 'EHP'), ('동문꽃방', '광고입간판'), ('(주)빌라드알티오라', '광고입간판'), ('13F메리츠캐피탈', 'PAC에어컨'), ('박기섭한의원', '광고입간판')}
+EXCLUDED = {('13F과학기술시설관리단', 'EHP'), ('9FA+에셋(서측)', 'EHP'), ('동문꽃방', '광고입간판'), ('플렉스볼링센터', '썬큰간판'), ('청사치과', '광고입간판'), ('플렉스골프라운지', '썬큰간판'), ('4F방송통신심의위원회', 'PAC에어컨'), ('13F메리츠캐피탈', 'PAC에어컨'), ('6F한국부동산원', '에어컨'), ('9FA+에셋(남측)', 'EHP'), ('박기섭한의원', '광고입간판'), ('12F노무법인태양', 'EHP'), ('플렉스볼링센터', '광고입간판'), ('11F아이피앤텍플러스', 'EHP'), ('(주)빌라드알티오라', '광고입간판'), ('19F과학기술보안관리단', 'EHP'), ('4FF&U', 'EHP')}
 def normalize(value):
     return re.sub(r"\s+", "", unicodedata.normalize("NFKC", str(value or ""))).upper()
 
@@ -277,9 +277,31 @@ def connect_sheet():
     credentials = ServiceAccountCredentials.from_json_keyfile_dict(secret, scope)
     return gspread.authorize(credentials).open_by_key(SPREADSHEET_ID)
 
+@st.cache_resource(ttl=300)
+def worksheets_by_title():
+    return {ws.title: ws for ws in connect_sheet().worksheets()}
+
+@st.cache_data(ttl=60, show_spinner=False)
+def load_month_rows(title):
+    return worksheets_by_title()[title].get_all_values()
+
+def is_quota_error(error):
+    return getattr(getattr(error, 'response', None), 'status_code', None) == 429 or '429' in str(error)
+
+def show_quota_message():
+    st.error('구글시트의 분당 요청 한도에 도달했습니다. 약 1분 뒤 다시 시도하세요. 입력한 값은 현재 화면에 유지됩니다.')
+    st.session_state['quota_until'] = datetime.now(timezone.utc).timestamp() + 60
+
+remaining = st.session_state.get('quota_until', 0) - datetime.now(timezone.utc).timestamp()
+if remaining > 0:
+    st.warning(f'구글시트 요청 한도 회복 대기 중입니다. 약 {int(remaining)+1}초 뒤 다시 시도하세요.')
+    if st.button('다시 연결'):
+        st.rerun()
+    st.stop()
+
 try:
-    doc = connect_sheet()
-    months = [ws.title for ws in doc.worksheets() if re.search(r'\d{4}년\s*\d{1,2}월', ws.title)]
+    worksheets = worksheets_by_title()
+    months = [title for title in worksheets if re.search(r'\d{4}년\s*\d{1,2}월', title)]
     if not months:
         st.error('월별 시트 탭을 찾지 못했습니다.')
         st.stop()
@@ -290,11 +312,16 @@ try:
     now = datetime.now(timezone(timedelta(hours=9)))
     default = next((i for i, title in enumerate(months) if month_key(title) == (now.year, now.month)), len(months)-1)
     selected_month = st.selectbox('검침 대상 월 (시트 탭 선택)', months, index=default)
-    sheet = doc.worksheet(selected_month)
-    all_rows = sheet.get_all_values()
+    sheet = worksheets[selected_month]
+    all_rows = load_month_rows(selected_month)
     columns, meters, unknown, excluded = prepare_meters(all_rows)
 except Exception as error:
-    st.error(f'시트를 불러오지 못했습니다: {error}')
+    if is_quota_error(error):
+        show_quota_message()
+    else:
+        st.error(f'시트를 불러오지 못했습니다: {error}')
+    if st.button('다시 연결'):
+        st.rerun()
     st.stop()
 
 notice = st.session_state.pop('saved_notice', None)
@@ -308,10 +335,18 @@ with left:
     only_pending = st.checkbox('미검침 계량기만 보기')
 with right:
     if st.button('새로고침', use_container_width=True):
-        for key in list(st.session_state):
-            if key.startswith('reading_'):
-                del st.session_state[key]
-        st.rerun()
+        now_seconds = datetime.now(timezone.utc).timestamp()
+        if now_seconds - st.session_state.get('last_refresh', 0) < 15:
+            st.info('새로고침은 15초 간격으로 할 수 있습니다.')
+        else:
+            st.session_state['last_refresh'] = now_seconds
+            load_month_rows.clear(selected_month)
+            worksheets_by_title.clear()
+            for key in list(st.session_state):
+                if key.startswith('reading_'):
+                    del st.session_state[key]
+            st.rerun()
+st.caption('조회 결과는 최대 1분간 재사용합니다. 저장 시 최신 시트를 다시 확인합니다.')
 if unknown:
     st.warning('순서표와 연결되지 않은 새 항목이 있습니다. 아래 목록을 확인하세요.')
     st.dataframe(unknown, hide_index=True)
@@ -385,10 +420,14 @@ if st.button('검침 데이터 저장', use_container_width=True, disabled=diffe
             planned = plan_save(all_rows, fresh, formulas, target, value)
             updates = [{'range': gspread.utils.rowcol_to_a1(r,c), 'values': [[v]]} for r,c,v in planned]
             sheet.batch_update(updates, value_input_option='RAW')
+            load_month_rows.clear(selected_month)
             st.session_state['saved_notice'] = f"{target['company']} / {target['meter']} — {planned[0][0]}행 저장 완료"
             if go_next and position + 1 < len(options):
                 st.session_state['next_meter'] = options[position+1]
     except Exception as error:
-        st.error(f'저장하지 못했습니다: {error}')
+        if is_quota_error(error):
+            show_quota_message()
+        else:
+            st.error(f'저장하지 못했습니다: {error}')
     else:
         st.rerun()
