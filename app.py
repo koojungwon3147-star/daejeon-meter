@@ -156,13 +156,13 @@ div[data-baseweb="input"] input {
 st.markdown(tp_custom_css, unsafe_allow_html=True)
 
 # ----------------------------------------------------
-# 2. 계량기 위치 마스터 맵 & PDF 위치표 기준 정밀 순서(Order)
+# 2. 계량기 위치 마스터 맵 & PDF 위치표 엄격 정렬
 # ----------------------------------------------------
 def get_meter_info(company, meter):
     c = company.replace(" ", "")
     m = meter.replace(" ", "")
     
-    # 💡 1F 방재센터 원격검침 대상
+    # 💡 1F 방재센터 원격검침 대상 (100% 완벽 분리)
     is_remote = False
     if "보안관리단" in c or "시설관리단" in c or "메리츠" in c:
         is_remote = True
@@ -176,84 +176,168 @@ def get_meter_info(company, meter):
         is_remote = True
 
     if is_remote:
-        return "📡 1F 방재센터 (원격검침)", "", 600
+        return "📡 1F 방재센터 (원격검침)", "", 2200
 
-    # --- [PDF 위치표 상단(PH1) -> 하단(B5F) 정밀 순서] ---
-    # 1. PH1 (19F 코웨이 실외기부터 시작)
-    if "코웨이" in c or "이안" in c: return "🏢 PH1 (옥상)", "No.5", 101
-    if "A+에셋" in c and "12F" in m: return "🏢 PH1 (옥상)", "No.9", 102
-    if "A+에셋" in c and "15F" in m: return "🏢 PH1 (옥상)", "No.53", 103
-    if "A+에셋" in c and "18F" in m: return "🏢 PH1 (옥상)", "No.60", 104
+    # --- [PDF 위치표 1행부터 27행까지 엄격한 순서 (Order 10~270)] ---
     
-    # 2. 20F EPS, 컨택센터
-    if "컨택센터UPS" in m or ("컨택" in c and "UPS" in m): return "📍 20F EPS실", "No.1", 105
-    if "컨텍센터EHP" in m or "컨택센터EHP" in m or ("컨택" in c and "EHP" in m): return "📍 20F EPS실", "No.2", 106
-    if "신한카드채권" in c or ("신한카드" in c and "PAC" in m): return "📍 20F EPS실", "No.54", 107
-    if "KB라이프" in c: return "📍 20F EPS실", "No.55", 108
-    if "ABL생명" in c: return "📍 20F EPS실", "No.56", 109
-    
-    # 3. 19F EPS
-    if "근로복지공단" in c and "19F" in c: return "📍 19F EPS실", "No.4", 110
-    if "프레제니우스" in c or "FMCK" in c: return "📍 19F EPS실", "No.6", 111
-    
-    # 4. 15F EPS
-    if "근로복지공단" in c and ("11층" in m or "11F" in m): return "📍 15F EPS실", "No.11", 112
-    if "한국부동산원" in c and ("18F" in c or "18층" in c): return "📍 15F EPS실", "No.52", 113
-    
-    # 5. 14F / 13F EPS
-    if "신한카드" in c and "14F" in c: return "📍 14F EPS실", "No.7", 114
-    if "시마즈" in c: return "📍 13F EPS실", "No.56", 115
-    
-    # 6. 7F / 6F EPS
-    if "오티스" in c or "OTIS" in c: return "📍 7F EPS실", "No.16", 116
+    # 1. PH1 (10~40)
+    if ("코웨이" in c or "이안" in c) or ("19F" in m and "실외기" in m): 
+        return "🏢 PH1 (옥상)", "No.5", 10
+    if ("A+에셋" in c or "에셋" in c) and ("12F" in m or "12층" in m or "9" in m) and "남측" not in c and "남측" not in m: 
+        return "🏢 PH1 (옥상)", "No.9", 20
+    if ("A+에셋" in c or "에셋" in c) and ("15F" in m or "15층" in m or "53" in m): 
+        return "🏢 PH1 (옥상)", "No.53", 30
+    if ("A+에셋" in c or "에셋" in c) and ("18F" in m or "18층" in m or "60" in m): 
+        return "🏢 PH1 (옥상)", "No.60", 40
+
+    # 2. 20F EPS, 컨택센터 (50~90)
+    if "컨택센터UPS" in m or ("컨택" in c and "UPS" in m): 
+        return "📍 20F EPS실", "No.1", 50
+    if "컨텍센터EHP" in m or "컨택센터EHP" in m or ("컨택" in c and "EHP" in m): 
+        return "📍 20F EPS실", "No.2", 60
+    if "신한카드채권" in c or ("신한카드" in c and ("PAC" in m or "채권" in c)): 
+        return "📍 20F EPS실", "No.54", 70
+    if "KB라이프" in c: 
+        return "📍 20F EPS실", "No.55", 80
+    if "ABL생명" in c: 
+        return "📍 20F EPS실", "No.56", 90
+
+    # 3. 19F EPS (100~110)
+    if "근로복지공단" in c and "19F" in c: 
+        return "📍 19F EPS실", "No.4", 100
+    if "프레제니우스" in c or "FMCK" in c: 
+        return "📍 19F EPS실", "No.6", 110
+
+    # 4. 15F EPS (120~130)
+    if "근로복지공단" in c and ("11층" in m or "11F" in m): 
+        return "📍 15F EPS실", "No.11", 120
+    if "한국부동산원" in c and ("18F" in c or "18층" in c): 
+        return "📍 15F EPS실", "No.52", 130
+
+    # 5. 14F EPS (140)
+    if "신한카드" in c and "14F" in c: 
+        return "📍 14F EPS실", "No.7", 140
+
+    # 6. 13F EPS (150)
+    if "시마즈" in c: 
+        return "📍 13F EPS실", "No.56", 150
+
+    # 7. 7F EPS (160)
+    if "오티스" in c or "OTIS" in c: 
+        return "📍 7F EPS실", "No.16", 160
+
+    # 8. 6F EPS (170~190)
     if "법률사무소" in c and "PAC" in m:
-        if "12" in m or "1" in m: return "📍 6F EPS실", "No.12", 117
-        return "📍 6F EPS실", "No.13", 118
-    if "A+에셋" in c and "8F" in c: return "📍 6F EPS실", "No.15", 119
-    
-    # 7. 5층 옥상
-    if "A+에셋" in c and ("남측" in c or "남측" in m or "돌출간판" in m): return "🌳 5층 옥상", "No.10", 120
-    if "생산성본부" in c or "17" in m: return "🌳 5층 옥상", "No.17", 121
-    if "볼링" in c and "서측" in m: return "🌳 5층 옥상", "No.39", 122
-    if "골프" in c and "서측" in m: return "🌳 5층 옥상", "No.46", 123
-    if "알티오라" in c and "서측" in m: return "🌳 5층 옥상", "No.23", 124
-    if "한의원" in c and "간판" in m: return "🌳 5층 옥상", "No.28", 125
-    if "청사치과" in c and "서측" in m: return "🌳 5층 옥상", "No.37", 126
-    if "법률사무소" in c and "돌출간판" in m: return "🌳 5층 옥상", "No.14", 127
-    
-    # 8. 4F ~ 1F
-    if "라이나생명" in c: return "📍 4F 라이나생명 내부", "No.18", 128
-    if "F&U" in c and "시스템" in m: return "📍 4F EPS실", "No.59", 129
-    if "계산" in m and "정산" in m: return "📍 3F EPS실", "No.19", 130
-    if "음향실" in m or ("웨딩" in m and "3층" in m): return "📍 3F 음향실", "No.26", 131
-    if "빌라드" in c and "동측" in m: return "📍 2F EPS실", "No.22", 132
-    if "웨딩예약실" in m: return "📍 2F EPS실", "No.25", 133
-    if "한의원" in c and "일반전열" in m: return "📍 2F 한의원 내부 분전반", "No.29", 134
-    if "동문꽃방" in c: return "📍 1F EPS실", "No.36", 135
+        if "12" in m or "1" in m: return "📍 6F EPS실", "No.12", 170
+        return "📍 6F EPS실", "No.13", 180
+    if ("A+에셋" in c or "에셋" in c) and ("8F" in c or "8층" in c): 
+        return "📍 6F EPS실", "No.15", 190
+
+    # 9. 5층 옥상 (200~280)
+    if ("A+에셋" in c or "에셋" in c) and ("남측" in c or "남측" in m or "돌출간판" in m or "10" in m): 
+        return "🌳 5층 옥상", "No.10", 200
+    if "생산성본부" in c or "17" in m: 
+        return "🌳 5층 옥상", "No.17", 210
+    if "볼링" in c and "서측" in m: 
+        return "🌳 5층 옥상", "No.39", 220
+    if "골프" in c and "서측" in m: 
+        return "🌳 5층 옥상", "No.46", 230
+    if "알티오라" in c and "서측" in m: 
+        return "🌳 5층 옥상", "No.23", 240
+    if "한의원" in c and "간판" in m: 
+        return "🌳 5층 옥상", "No.28", 250
+    if "청사치과" in c and "서측" in m: 
+        return "🌳 5층 옥상", "No.37", 260
+    if "법률사무소" in c and "돌출간판" in m: 
+        return "🌳 5층 옥상", "No.14", 270
+
+    # 10. 4F 라이나생명 내부 (290)
+    if "라이나생명" in c: 
+        return "📍 4F 라이나생명 내부", "No.18", 290
+
+    # 11. 4F EPS (300)
+    if "F&U" in c and "시스템" in m: 
+        return "📍 4F EPS실", "No.59", 300
+
+    # 12. 3F EPS (310)
+    if "계산" in m and "정산" in m: 
+        return "📍 3F EPS실", "No.19", 310
+
+    # 13. 3F 음향실 (320)
+    if "음향실" in m or ("웨딩" in m and "3층" in m): 
+        return "📍 3F 음향실", "No.26", 320
+
+    # 14. 2F EPS (330~340)
+    if "빌라드" in c and "동측" in m: 
+        return "📍 2F EPS실", "No.22", 330
+    if "웨딩예약실" in m: 
+        return "📍 2F EPS실", "No.25", 340
+
+    # 15. 2F 한의원 내 분전반 (350)
+    if "한의원" in c and "일반전열" in m: 
+        return "📍 2F 한의원 내부 분전반", "No.29", 350
+
+    # 16. 1F EPS (360)
+    if "동문꽃방" in c: 
+        return "📍 1F EPS실", "No.36", 360
+
+    # 17. 1F 고반식당 (370~390)
     if "고반식당" in c:
-        if "일반전열" in m or "32" in m: return "📍 1F 고반식당", "No.32", 136
-        if "비상전열" in m or "33" in m: return "📍 1F 고반식당", "No.33", 137
-        return "📍 1F 고반식당", "No.34", 138
-    if "해이커피" in c: return "📍 1F 해이커피", "No.57", 139
-    if "현대캐피탈" in c: return "📍 1F 현대캐피탈", "No.58", 140
-    if "지주식" in m or "49" in m: return "🌳 1F 정문 화단", "No.49", 141
-    if "썬큰간판" in m or "48" in m: return "🌳 1F 후문 화단", "No.48", 142
-    
-    # 9. 지하층 (B1F ~ B5F)
-    if "골프장" in m and "동력" in m: return "⛳ B1F 플렉스 골프라운지", "No.47", 143
-    if "골프장" in m and "에어컨-1" in m: return "⛳ B1F 플렉스 골프라운지", "No.50", 144
-    if "골프장" in m and "에어컨-2" in m: return "⛳ B1F 플렉스 골프라운지", "No.51", 145
-    if "볼링" in c and "일반전열" in m: return "🎳 B1F 플렉스 볼링센터", "No.43", 146
-    if "후문계단" in m or "2F홀" in m: return "📍 B1F EPS실", "No.24", 147
-    if "볼링" in c and "에어컨3" in m: return "📍 B1F EPS실", "No.42", 148
-    if "냉동기" in m: return "📍 B4F 상부 EPS실", "No.27", 149
-    if "주방동력1" in m: return "⚡ B5F 수변전실", "No.21", 150
-    if "주방동력2" in m: return "⚡ B5F 수변전실", "No.20", 151
-    if "볼링" in c and "동력" in m: return "⚡ B5F 수변전실", "No.38", 152
-    if "볼링" in c and "에어컨1" in m: return "⚡ B5F 수변전실", "No.40", 153
-    if "볼링" in c and "에어컨2" in m: return "⚡ B5F 수변전실", "No.41", 154
+        if "일반전열" in m or "32" in m: return "📍 1F 고반식당", "No.32", 370
+        if "비상전열" in m or "33" in m: return "📍 1F 고반식당", "No.33", 380
+        return "📍 1F 고반식당", "No.34", 390
+
+    # 18. 1F 해이커피 (400)
+    if "해이커피" in c: 
+        return "📍 1F 해이커피", "No.57", 400
+
+    # 19. 1F 현대캐피탈 (410)
+    if "현대캐피탈" in c: 
+        return "📍 1F 현대캐피탈", "No.58", 410
+
+    # 20. 1F 지주식 입간판 (420)
+    if "지주식" in m or "49" in m: 
+        return "🌳 1F 정문 화단", "No.49", 420
+
+    # 21. 1F 후문 화단 (430)
+    if "썬큰간판" in m or "48" in m: 
+        return "🌳 1F 후문 화단", "No.48", 430
+
+    # 22. B1F 골프장 (1000~1020)
+    if "골프장" in m and "동력" in m: 
+        return "⛳ B1F 플렉스 골프라운지", "No.47", 1000
+    if "골프장" in m and "에어컨-1" in m: 
+        return "⛳ B1F 플렉스 골프라운지", "No.50", 1010
+    if "골프장" in m and "에어컨-2" in m: 
+        return "⛳ B1F 플렉스 골프라운지", "No.51", 1020
+
+    # 23. B1F 볼링장 (1030)
+    if "볼링" in c and "일반전열" in m: 
+        return "🎳 B1F 플렉스 볼링센터", "No.43", 1030
+
+    # 24. B1F EPS (1040~1050)
+    if "후문계단" in m or "2F홀" in m: 
+        return "📍 B1F EPS실", "No.24", 1040
+    if "볼링" in c and "에어컨3" in m: 
+        return "📍 B1F EPS실", "No.42", 1050
+
+    # 25. B4F 상부 EPS (1060)
+    if "냉동기" in m: 
+        return "📍 B4F 상부 EPS실", "No.27", 1060
+
+    # 26. B5F 수변전실 (1070~1110)
+    if "주방동력1" in m: 
+        return "⚡ B5F 수변전실", "No.21", 1070
+    if "주방동력2" in m: 
+        return "⚡ B5F 수변전실", "No.20", 1080
+    if "볼링" in c and "동력" in m: 
+        return "⚡ B5F 수변전실", "No.38", 1090
+    if "볼링" in c and "에어컨1" in m: 
+        return "⚡ B5F 수변전실", "No.40", 1100
+    if "볼링" in c and "에어컨2" in m: 
+        return "⚡ B5F 수변전실", "No.41", 1110
         
-    return "📍 현장 분전반", "", 999
+    return "📍 현장 분전반", "", 9999
 
 # ----------------------------------------------------
 # 3. 구글 시트 연결
@@ -388,7 +472,7 @@ for row_idx, row in enumerate(all_rows[1:], start=2):
         "curr_val": curr_val
     })
 
-# 💡 [핵심] PDF 위치표 기준 정밀 순서 정렬
+# 💡 [핵심] PDF 위치표 기준 1등부터 순서대로 완벽 정렬
 meters_data.sort(key=lambda x: x["order"])
 
 total_count = len(meters_data)
@@ -410,25 +494,7 @@ with col_filter2:
     st.markdown('</div>', unsafe_allow_html=True)
 
 # ----------------------------------------------------
-# 💡 [새 기능] 앱 화면에서 언제든 바로 펼쳐볼 수 있는 위치표 상자
-# ----------------------------------------------------
-with st.expander("📋 계량기 검침 위치 및 순서표 (전체 보기)"):
-    st.markdown("""
-    * **🏢 PH1**: 19F 코웨이(이안) [No.5], 12F A+에셋 [No.9], 15F A+에셋 [No.53], 18F A+에셋 [No.60]
-    * **📍 20F EPS**: 컨택센터 UPS [No.1], EHP [No.2], 신한카드 PAC [No.54], KB라이프 [No.55], ABL생명 [No.56]
-    * **📍 19F EPS**: 19F 근로복지공단 [No.4], FMCK [No.6]
-    * **📍 15F EPS**: 11F 근로복지공단 [No.11], 18F 한국부동산원 [No.52]
-    * **📍 14F/13F EPS**: 14F 신한카드 [No.7], 13F 시마즈 [No.56]
-    * **📍 7F/6F EPS**: 오티스 [No.16], 법률사무소 PAC [No.12, 13], 8F A+에셋 [No.15]
-    * **🌳 5층 옥상**: A+에셋 남측간판 [No.10], 생산성본부 [No.17], 볼링장 [No.39], 골프장 [No.46], 알티오라 [No.23], 한의원 [No.28], 청사치과 [No.37], 법률사무소 [No.14]
-    * **📍 4F~1F**: 라이나생명 [No.18], F&U [No.59], 3F 정산실 [No.19], 음향실 [No.26], 2F 동측 [No.22], 한의원 [No.29], 꽃방 [No.36], 고반식당 [No.32~34], 해이커피 [No.57], 현대캐피탈 [No.58]
-    * **🌳 1F 화단**: 정문 지주식 [No.49], 후문 썬큰간판 [No.48]
-    * **📡 1F 방재센터**: 보안관리단, 시설관리단, 메리츠, 와이즈넛, 아이피앤텍, 부동산원, KODATA, 방통위 (원격검침)
-    * **⛳🎳 지하층**: 골프장 [No.47, 50, 51], 볼링장 [No.43], B1F EPS [No.24, 42], B4F 냉동기 [No.27], B5F 수변전실 [No.20, 21, 38, 40, 41]
-    """)
-
-# ----------------------------------------------------
-# 6. 검침 대상 선택 (PDF 순서대로)
+# 6. 검침 대상 선택 (PDF 순서 100% 매칭)
 # ----------------------------------------------------
 options = []
 label_to_item = {}
