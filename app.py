@@ -162,7 +162,7 @@ def get_meter_info(company, meter):
     c = company.replace(" ", "")
     m = meter.replace(" ", "")
     
-    # 💡 1F 방재센터 원격검침 대상 (목록에서 완벽 제외하기 위한 플래그)
+    # 💡 1F 방재센터 원격검침 대상 (목록에서 완벽 제외)
     is_remote = False
     if "보안관리단" in c or "시설관리단" in c or "메리츠" in c:
         is_remote = True
@@ -176,7 +176,7 @@ def get_meter_info(company, meter):
         is_remote = True
 
     if is_remote:
-        return None  # 원격검침은 아예 제외 처리
+        return None
 
     # --- [위치표 이미지 상단 -> 하단, 좌 -> 우 엄격 순서] ---
     
@@ -252,7 +252,7 @@ def get_meter_info(company, meter):
     if "법률사무소" in c and "돌출간판" in m:
         return {"location": "🌳 5층 옥상", "no": "No.14", "order": 27}
     if "KODATA" in c or "코데이터" in c or "한국평가데이터" in c:
-        return {"location": "🌳 5층 옥상", "no": "", "order": 28} # KODATA 번호 없음 요청 반영
+        return {"location": "🌳 5층 옥상", "no": "", "order": 28}
 
     # 10. 4F 라이나생명 내부
     if "라이나생명" in c:
@@ -318,7 +318,7 @@ def get_meter_info(company, meter):
 
     # 23. B1F 볼링장
     if "볼링" in c and "일반전열" in m:
-        return {"location": " bowling B1F 플렉스 볼링센터", "no": "No.43", "order": 47}
+        return {"location": "🎳 B1F 플렉스 볼링센터", "no": "No.43", "order": 47}
 
     # 24. B1F EPS
     if "후문계단" in m or "2F홀" in m:
@@ -416,7 +416,6 @@ col_company = 0 if col_company == -1 else col_company
 col_meter = 1 if col_meter == -1 else col_meter
 
 meters_data = []
-completed_count = 0
 seen_keys = set()
 
 for row_idx, row in enumerate(all_rows[1:], start=2):
@@ -440,7 +439,11 @@ for row_idx, row in enumerate(all_rows[1:], start=2):
     if unique_key in seen_keys:
         continue
     seen_keys.add(unique_key)
-        
+
+    info = get_meter_info(company, meter_name)
+    if info is None:
+        continue  # 원격검침 항목은 완전히 제외
+
     ct_ratio = 1.0
     if col_ratio != -1 and len(row) > col_ratio and row[col_ratio].strip():
         try:
@@ -459,13 +462,8 @@ for row_idx, row in enumerate(all_rows[1:], start=2):
     if col_curr != -1 and len(row) > col_curr and row[col_curr].strip():
         try:
             curr_val = float(row[col_curr].replace(',', ''))
-            completed_count += 1
         except ValueError:
             curr_val = None
-
-    info = get_meter_info(company, meter_name)
-    if info is None:
-        continue  # 원격검침 항목은 완전히 제외
 
     meters_data.append({
         "row_idx": row_idx,
@@ -479,15 +477,20 @@ for row_idx, row in enumerate(all_rows[1:], start=2):
         "curr_val": curr_val
     })
 
-# 💡 [핵심] 이미지 표 기준 순서 1번부터 완전히 오름차순 정렬
+# 이미지 표 기준 오름차순 정렬
 meters_data.sort(key=lambda x: x["order"])
 
+# 💡 [오류 해결의 핵심] 실제 대상 목록(meters_data) 내에서만 완료 개수 계산
+completed_count = sum(1 for m in meters_data if m["curr_val"] is not None)
 total_count = len(meters_data)
 
 # ----------------------------------------------------
 # 5. 진행 현황 & 미니 새로고침
 # ----------------------------------------------------
 progress_ratio = completed_count / total_count if total_count > 0 else 0
+# 100% 초과 방지 안전장치
+progress_ratio = min(max(progress_ratio, 0.0), 1.0)
+
 st.markdown(f"**검침 진행 현황:** **{completed_count}** / {total_count}개 완료 ({int(progress_ratio*100)}%)")
 st.progress(progress_ratio)
 
