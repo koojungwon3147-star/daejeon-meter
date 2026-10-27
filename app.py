@@ -3,7 +3,7 @@ import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 
 # ----------------------------------------------------
-# 1. 화면 스타일 (다크/라이트 완벽 대응 & 슬림 테마)
+# 1. 화면 스타일 (다크/라이트 대응 & 슬림 테마)
 # ----------------------------------------------------
 st.set_page_config(page_title="대전회관 전기계량기 검침", layout="centered")
 
@@ -135,6 +135,17 @@ div[data-baseweb="input"] input {
     font-size: 13px;
     font-weight: 600;
 }
+
+/* 계량기 번호 뱃지 */
+.meter-no-badge {
+    background-color: #1B75BC;
+    color: #FFFFFF;
+    padding: 2px 7px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 700;
+    margin-right: 6px;
+}
 </style>
 
 <div class="tp-top-bar">티피에스 주식회사 | 대전회관</div>
@@ -145,95 +156,106 @@ div[data-baseweb="input"] input {
 st.markdown(tp_custom_css, unsafe_allow_html=True)
 
 # ----------------------------------------------------
-# 2. 계량기 위치 마스터 맵 (원격검침 대상 완벽 반영)
+# 2. 계량기 위치 마스터 맵 & PDF 순서 가중치(Order) 정의
 # ----------------------------------------------------
-def get_meter_location(company, meter):
+def get_meter_info(company, meter):
     c = company.replace(" ", "")
     m = meter.replace(" ", "")
     
-    # 💡 [원격검침 우선 분류] 1F 방재센터 원격검침 항목들
+    # 💡 1F 방재센터 원격검침 대상 (12F 에셋 남측간판 등 제외)
     is_remote = False
-    if "보안관리단" in c or "시설관리단" in c or "메리츠" in c or "태양" in c:
+    if "보안관리단" in c or "시설관리단" in c or "메리츠" in c:
         is_remote = True
     elif "아이피" in c or "와이즈넛" in c or "방송통신" in c:
         is_remote = True
-    elif "A+에셋" in c and ("남측" in c or "서측" in c or "남측" in m or "서측" in m):
-        is_remote = True
     elif "KODATA" in c and "EHP" in m:
         is_remote = True
-    elif "부동산원" in c and ("6F" in c or "6층" in c or "에어컨" in m):
-        # 18F 한국부동산원(15F EPS) 외의 6F 부동산원 원격 대상
-        if "18F" not in c and "18층" not in c:
-            is_remote = True
+    elif "부동산원" in c and ("6F" in c or "6층" in c or "에어컨" in m) and ("18F" not in c and "18층" not in c):
+        is_remote = True
     elif "F&U" in c and ("EHP" in m or "4,5층" in m or "시스템" not in m):
-        # F&U EHP 원격검침 (시스템실은 4F EPS 현장 실측)
         is_remote = True
 
     if is_remote:
-        return "📡 1F 방재센터 (원격검침)"
+        return "📡 1F 방재센터 (원격검침)", "", 600
+
+    # --- [PDF 위치표 순서에 맞춘 위치, 계량기 번호, 순서 가중치] ---
+    # 1. PH1 (옥상) - Order 100~
+    if "코웨이" in c or "이안" in c: return "🏢 PH1 (옥상)", "No.5", 101
+    if "A+에셋" in c and "12F" in m: return "🏢 PH1 (옥상)", "No.9", 102
+    if "A+에셋" in c and "15F" in m: return "🏢 PH1 (옥상)", "No.53", 103
+    if "A+에셋" in c and "18F" in m: return "🏢 PH1 (옥상)", "No.60", 104
     
-    # --- [현장 실측 위치 분류] ---
-    # 1. 옥상 (PH1)
-    if "코웨이" in c or "이안" in c: return "🏢 PH1 (옥상)"
-    if "A+에셋" in c and "12F" in m: return "🏢 PH1 (옥상)"
-    if "A+에셋" in c and ("15F" in m or "실외기" in m): return "🏢 PH1 (옥상)"
-    if "A+에셋" in c and "18F" in m: return "🏢 PH1 (옥상)"
+    # 2. 20F EPS - Order 200~
+    if "컨택센터UPS" in m or ("컨택" in c and "UPS" in m): return "📍 20F EPS실", "No.1", 201
+    if "컨텍센터EHP" in m or "컨택센터EHP" in m or ("컨택" in c and "EHP" in m): return "📍 20F EPS실", "No.2", 202
+    if "신한카드채권" in c or ("신한카드" in c and "PAC" in m): return "📍 20F EPS실", "No.54", 203
+    if "KB라이프" in c: return "📍 20F EPS실", "No.55", 204
+    if "ABL생명" in c: return "📍 20F EPS실", "No.56", 205
     
-    # 2. 20F
-    if "티피에스" in c: return "📍 20F EPS실"
-    if "신한카드채권" in c: return "📍 20F EPS실"
-    if "KB라이프" in c: return "📍 20F EPS실"
-    if "ABL생명" in c: return "📍 20F EPS실"
+    # 3. 19F EPS - Order 210~
+    if "근로복지공단" in c and "19F" in c: return "📍 19F EPS실", "No.4", 211
+    if "프레제니우스" in c or "FMCK" in c: return "📍 19F EPS실", "No.6", 212
     
-    # 3. 19F
-    if "근로복지공단" in c and "19F" in c: return "📍 19F EPS실"
-    if "프레제니우스" in c or "FMCK" in c: return "📍 19F EPS실"
+    # 4. 15F EPS - Order 220~
+    if "근로복지공단" in c and ("11층" in m or "11F" in m): return "📍 15F EPS실", "No.11", 221
+    if "한국부동산원" in c and ("18F" in c or "18층" in c): return "📍 15F EPS실", "No.52", 222
     
-    # 4. 15F
-    if "근로복지공단" in c and ("11층" in m or "11F" in m): return "📍 15F EPS실"
-    if "한국부동산원" in c and ("18F" in c or "18층" in c): return "📍 15F EPS실"
+    # 5. 14F / 13F EPS - Order 230~
+    if "신한카드" in c and "14F" in c: return "📍 14F EPS실", "No.7", 231
+    if "시마즈" in c: return "📍 13F EPS실", "No.56", 232
     
-    # 5. 14F / 13F
-    if "신한카드" in c and "14F" in c: return "📍 14F EPS실"
-    if "시마즈" in c: return "📍 13F EPS실"
+    # 6. 7F / 6F EPS - Order 240~
+    if "오티스" in c or "OTIS" in c: return "📍 7F EPS실", "No.16", 241
+    if "법률사무소" in c and "PAC" in m:
+        if "12" in m or "1" in m: return "📍 6F EPS실", "No.12", 242
+        return "📍 6F EPS실", "No.13", 243
+    if "A+에셋" in c and "8F" in c: return "📍 6F EPS실", "No.15", 244
     
-    # 6. 7F / 6F
-    if "오티스" in c or "OTIS" in c: return "📍 7F EPS실"
-    if "법률사무소" in c and "PAC" in m: return "📍 6F EPS실"
-    if "A+에셋" in c and "8F" in c: return "📍 6F EPS실"
+    # 7. 5층 옥상 (간판 집중) - Order 300~
+    if "A+에셋" in c and ("남측" in c or "남측" in m or "돌출간판" in m): return "🌳 5층 옥상", "No.10", 301
+    if "생산성본부" in c or "17" in m: return "🌳 5층 옥상", "No.17", 302
+    if "볼링" in c and "서측" in m: return "🌳 5층 옥상", "No.39", 303
+    if "골프" in c and "서측" in m: return "🌳 5층 옥상", "No.46", 304
+    if "알티오라" in c and "서측" in m: return "🌳 5층 옥상", "No.23", 305
+    if "한의원" in c and "간판" in m: return "🌳 5층 옥상", "No.28", 306
+    if "청사치과" in c and "서측" in m: return "🌳 5층 옥상", "No.37", 307
+    if "법률사무소" in c and "돌출간판" in m: return "🌳 5층 옥상", "No.14", 308
     
-    # 7. 5층 옥상 (간판 집중)
-    if "돌출간판" in m or "벽간판" in m or "서측" in m: return "🌳 5층 옥상"
+    # 8. 4F ~ 1F 내부 및 EPS실 - Order 400~
+    if "라이나생명" in c: return "📍 4F 라이나생명 내부", "No.18", 401
+    if "F&U" in c and "시스템" in m: return "📍 4F EPS실", "No.59", 402
+    if "계산" in m and "정산" in m: return "📍 3F EPS실", "No.19", 403
+    if "음향실" in m or ("웨딩" in m and "3층" in m): return "📍 3F 음향실", "No.26", 404
+    if "빌라드" in c and "동측" in m: return "📍 2F EPS실", "No.22", 405
+    if "웨딩예약실" in m: return "📍 2F EPS실", "No.25", 406
+    if "한의원" in c and "일반전열" in m: return "📍 2F 한의원 내부 분전반", "No.29", 407
+    if "동문꽃방" in c: return "📍 1F EPS실", "No.36", 408
+    if "고반식당" in c:
+        if "일반전열" in m or "32" in m: return "📍 1F 고반식당", "No.32", 409
+        if "비상전열" in m or "33" in m: return "📍 1F 고반식당", "No.33", 410
+        return "📍 1F 고반식당", "No.34", 411
+    if "해이커피" in c: return "📍 1F 해이커피", "No.57", 412
+    if "현대캐피탈" in c: return "📍 1F 현대캐피탈", "No.58", 413
+
+    # 9. 1F 화단 간판류 - Order 500~
+    if "지주식" in m or "49" in m: return "🌳 1F 정문 화단", "No.49", 501
+    if "썬큰간판" in m or "48" in m: return "🌳 1F 후문 화단", "No.48", 502
     
-    # 8. 4F ~ 2F
-    if "라이나생명" in c: return "📍 4F 라이나생명 내부"
-    if "F&U" in c and "시스템" in m: return "📍 4F EPS실"
-    if "계산" in m and "정산" in m: return "📍 3F EPS실"
-    if "음향실" in m or ("웨딩" in m and "3층" in m): return "📍 3F 음향실"
-    if "빌라드" in c and "에어컨" in m and "동측" in m: return "📍 2F EPS실"
-    if "웨딩예약실" in m: return "📍 2F EPS실"
-    if "한의원" in c and "일반전열" in m: return "📍 2F 한의원 내부 분전반"
-    
-    # 9. 1F
-    if "동문꽃방" in c and "쇼케이스" in m: return "📍 1F EPS실"
-    if "고반식당" in c: return "📍 1F 고반식당"
-    if "해이커피" in c: return "📍 1F 해이커피"
-    if "현대캐피탈" in c: return "📍 1F 현대캐피탈"
-    if "지주식" in m: return "🌳 1F 정문 화단"
-    if "썬큰간판" in m: return "🌳 1F 후문 화단"
-    
-    # 10. 지하층 (B1F ~ B5F)
-    if "골프장" in m and "동력" in m: return "⛳ B1F 플렉스 골프라운지"
-    if "골프장" in m and "에어컨" in m: return "⛳ B1F 플렉스 골프라운지"
-    if "볼링" in c and "일반전열" in m: return "🎳 B1F 플렉스 볼링센터"
-    if "후문계단" in m or "2F홀" in m: return "📍 B1F EPS실"
-    if "볼링" in c and "에어컨3" in m: return "📍 B1F EPS실"
-    if "냉동기" in m: return "📍 B4F 상부 EPS실"
-    if "주방동력" in m: return "⚡ B5F 수변전실"
-    if "볼링장동력" in m or ("볼링" in c and "동력" in m): return "⚡ B5F 수변전실"
-    if "볼링" in c and ("에어컨1" in m or "에어컨2" in m): return "⚡ B5F 수변전실"
+    # 10. 지하층 (B1F ~ B5F) - Order 700~
+    if "골프장" in m and "동력" in m: return "⛳ B1F 플렉스 골프라운지", "No.47", 701
+    if "골프장" in m and "에어컨-1" in m: return "⛳ B1F 플렉스 골프라운지", "No.50", 702
+    if "골프장" in m and "에어컨-2" in m: return "⛳ B1F 플렉스 골프라운지", "No.51", 703
+    if "볼링" in c and "일반전열" in m: return "🎳 B1F 플렉스 볼링센터", "No.43", 704
+    if "후문계단" in m or "2F홀" in m: return "📍 B1F EPS실", "No.24", 705
+    if "볼링" in c and "에어컨3" in m: return "📍 B1F EPS실", "No.42", 706
+    if "냉동기" in m: return "📍 B4F 상부 EPS실", "No.27", 707
+    if "주방동력1" in m: return "⚡ B5F 수변전실", "No.21", 708
+    if "주방동력2" in m: return "⚡ B5F 수변전실", "No.20", 709
+    if "볼링" in c and "동력" in m: return "⚡ B5F 수변전실", "No.38", 710
+    if "볼링" in c and "에어컨1" in m: return "⚡ B5F 수변전실", "No.40", 711
+    if "볼링" in c and "에어컨2" in m: return "⚡ B5F 수변전실", "No.41", 712
         
-    return "📍 현장 분전반"
+    return "📍 현장 분전반", "", 999
 
 # ----------------------------------------------------
 # 3. 구글 시트 연결
@@ -308,7 +330,7 @@ col_meter = 1 if col_meter == -1 else col_meter
 
 meters_data = []
 completed_count = 0
-seen_keys = set()  # 💡 중복 등록 방지용 집합
+seen_keys = set()
 
 for row_idx, row in enumerate(all_rows[1:], start=2):
     if not row or not row[col_company].strip():
@@ -317,11 +339,9 @@ for row_idx, row in enumerate(all_rows[1:], start=2):
     company = row[col_company].strip()
     meter_name = row[col_meter].strip() if len(row) > col_meter else "계량기"
     
-    # 합계 행 및 빈 행 건너뛰기
     if "합계" in company or "총합계" in company:
         continue
         
-    # 본문 쪽 입주사 가상 간판 행은 제외 (분리내역 수식으로 자동 계산되는 행들)
     is_virtual_split = (
         ("광고입간판" in meter_name and "1F 지주식" not in meter_name and "정문" not in meter_name) or
         ("썬큰간판" in meter_name and "후문" not in meter_name and "볼링/골프" not in company)
@@ -329,7 +349,6 @@ for row_idx, row in enumerate(all_rows[1:], start=2):
     if is_virtual_split:
         continue
 
-    # 💡 [핵심] 동일한 업체명 + 계량기명이 이미 등록되었다면 두 번째 행은 건너뜀 (중복 완벽 차단)
     unique_key = f"{company}_{meter_name}"
     if unique_key in seen_keys:
         continue
@@ -357,17 +376,22 @@ for row_idx, row in enumerate(all_rows[1:], start=2):
         except ValueError:
             curr_val = None
 
-    location = get_meter_location(company, meter_name)
+    location, meter_no, order = get_meter_info(company, meter_name)
 
     meters_data.append({
         "row_idx": row_idx,
         "company": company,
         "meter": meter_name,
         "location": location,
+        "meter_no": meter_no,
+        "order": order,
         "ct_ratio": ct_ratio,
         "prev_val": prev_val,
         "curr_val": curr_val
     })
+
+# 💡 [핵심] PDF 위치표 순서(order) 기준으로 정렬
+meters_data.sort(key=lambda x: x["order"])
 
 total_count = len(meters_data)
 
@@ -388,7 +412,7 @@ with col_filter2:
     st.markdown('</div>', unsafe_allow_html=True)
 
 # ----------------------------------------------------
-# 6. 검침 대상 선택
+# 6. 검침 대상 선택 (PDF 동선 순서대로 목록 표시)
 # ----------------------------------------------------
 options = []
 label_to_item = {}
@@ -398,13 +422,13 @@ for m in meters_data:
     if only_uncompleted and is_done:
         continue
     
-    # 💡 원격검침 항목은 완료 여부와 무관하게 원격 표시 (완료 시 완료 태그 병기)
     if "원격검침" in m["location"]:
         tag = "✅ [원격완료]" if is_done else "📡 [원격]"
     else:
         tag = "✅ [완료]" if is_done else "⬜ [대기]"
 
-    label = f"{tag} [{m['company']}] {m['meter']}"
+    no_str = f"[{m['meter_no']}] " if m['meter_no'] else ""
+    label = f"{tag} {no_str}[{m['company']}] {m['meter']}"
     options.append(label)
     label_to_item[label] = m
 
@@ -419,7 +443,6 @@ if 'selected_idx' not in st.session_state or st.session_state.selected_idx >= le
 
 selected_label = st.selectbox("검침 계량기 선택", options, index=st.session_state.selected_idx, label_visibility="collapsed")
 curr_data = label_to_item[selected_label]
-curr_idx = options.index(selected_label)
 is_curr_done = (curr_data["curr_val"] is not None)
 
 if is_curr_done:
@@ -431,11 +454,11 @@ if is_curr_done:
     </div>
     """, unsafe_allow_html=True)
 
-# 💡 위치표 마스터 정보가 포함된 상세 안내 상자
+no_badge = f'<span class="meter-no-badge">{curr_data["meter_no"]}</span>' if curr_data["meter_no"] else ""
 st.markdown(f"""
 <div class="tp-info-box">
     <b>검침 위치:</b> <span class="location-badge">{curr_data['location']}</span><br>
-    <b>입주사:</b> {curr_data['company']} &nbsp;|&nbsp; <b>계량기:</b> {curr_data['meter']}<br>
+    <b>입주사:</b> {curr_data['company']} &nbsp;|&nbsp; <b>계량기:</b> {no_badge}{curr_data['meter']}<br>
     <b>전월 지침:</b> {int(curr_data['prev_val']):,d} kWh &nbsp;|&nbsp; <b>적용 배율:</b> ×{int(curr_data['ct_ratio']) if curr_data['ct_ratio'].is_integer() else curr_data['ct_ratio']}
 </div>
 """, unsafe_allow_html=True)
@@ -467,14 +490,12 @@ with col2:
 if diff < 0:
     st.error("당월 지침이 전월 지침보다 작습니다. 오입력을 확인하세요.")
 
-# 공동 간판 배분 계산기 안내
 if "썬큰간판" in curr_data["meter"]:
     split_2 = round(actual_usage / 2, 1)
     st.info(f"""
     📢 **[공동 간판 배분 계산기 (1/2 배분)]**
     * 총 검침 사용량: **{actual_usage:,} kWh**
     * 업체별 부담 (**플렉스 볼링센터 / 플렉스 골프라운지** 각 50%): **{split_2:,.1f} kWh**
-    *(저장 시 하단 실물 칸에 기록되며 상단 입주사 대장으로 자동 배분 연동됩니다.)*
     """)
 elif "지주식" in curr_data["meter"]:
     split_5 = round(actual_usage / 5, 1)
@@ -482,14 +503,13 @@ elif "지주식" in curr_data["meter"]:
     📢 **[공동 간판 배분 계산기 (1/5 균등 배분)]**
     * 총 검침 사용량: **{actual_usage:,} kWh**
     * 업체별 부담 (**한의원 / 치과 / 꽃방 / 볼링 / 웨딩** 각 20%): **{split_5:,.1f} kWh**
-    *(저장 시 하단 실물 칸에 기록되며 상단 입주사 대장으로 자동 배분 연동됩니다.)*
     """)
 
 # ----------------------------------------------------
-# 8. 스마트 저장 및 다음 이동
+# 8. 검침 데이터 저장 (현재 위치 유지)
 # ----------------------------------------------------
 st.markdown('<div class="save-btn">', unsafe_allow_html=True)
-if st.button("검침 데이터 저장 및 다음 계량기로 이동", use_container_width=True):
+if st.button("검침 데이터 저장", use_container_width=True):
     with st.spinner("구글 시트에 실시간 기록 중..."):
         row = curr_data["row_idx"]
         
@@ -500,11 +520,6 @@ if st.button("검침 데이터 저장 및 다음 계량기로 이동", use_conta
         if col_usage != -1:
             sheet.update_cell(row, col_usage + 1, actual_usage)
             
-        if curr_idx + 1 < len(options):
-            st.session_state.selected_idx = curr_idx + 1
-        else:
-            st.session_state.selected_idx = 0
-            
-        st.toast(f"[{curr_data['company']}] 저장 완료", icon="💾")
+        st.toast(f"[{curr_data['company']}] 저장 완료!", icon="💾")
         st.rerun()
 st.markdown('</div>', unsafe_allow_html=True)
